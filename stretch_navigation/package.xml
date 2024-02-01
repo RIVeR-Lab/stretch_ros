@@ -24,4 +24,5 @@
   <exec_depend>octovis</exec_depend>
   <exec_depend>stretch_core</exec_depend>
   <exec_depend>stretch_gazebo</exec_depend>
+  <exec_depend>explore_lite</exec_depend>
 </package>

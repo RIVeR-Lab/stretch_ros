@@ -113,7 +113,7 @@ class HandoverObjectNode(hm.HelloNode):
 
                     grasp_center_frame_id = 'link_grasp_center'
                     stamped_transform = self.tf2_buffer.lookup_transform(new_frame_id, grasp_center_frame_id, lookup_time, timeout_ros)
-                    grasp_center_to_base_mat = rn.numpify(stamped_transform.transform)
+                    grasp_center_to_base_mat = rn.numpify(stamped_transform.transform)f
 
                     mouth_camera_xyz = np.array([0.0, 0.0, 0.0, 1.0])
                     mouth_camera_xyz[:3] = rn.numpify(self.mouth_point.point)[:3]
