@@ -1,0 +1,14 @@
+<launch>
+    <!-- STRETCH DRIVER NAVIGATION -->
+    <arg name="map_yaml"                doc="filepath to previously captured map (required)" />
+    <arg name="rviz"     default="true" doc="whether to show Rviz" />
+    
+    <include file="$(find stretch_navigation)/launch/navigation_no_amcl.launch" pass_all_args="true" />
+
+    <!-- STRECH CAMERA ARUCO DRIVERS -->
+    <include file="$(find stretch_core)/launch/d435i_high_resolution.launch" />
+    <include file="$(find stretch_core)/launch/stretch_aruco.launch" />
+
+    <!-- STRETCH PUTAWAY NODE-->
+    
+</launch>
