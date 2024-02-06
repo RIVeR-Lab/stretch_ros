@@ -72,6 +72,11 @@
     'use_rgb_only': False
     'name': 'user_pointer'
     'link': 'None'
+  '20':
+    'length_mm': 100
+    'use_rgb_only': False
+    'name': 'aruco_detected_table'
+    'link': 'link_aruco_table'
   'default':
     'length_mm': 24
     'use_rgb_only': False

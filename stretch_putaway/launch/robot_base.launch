@@ -1,6 +1,6 @@
 <launch>
     <!-- STRETCH DRIVER NAVIGATION -->
-    <arg name="map_yaml"                doc="filepath to previously captured map (required)" />
+    <arg name="map_yaml" default="/home/hello-robot/stretch_user/maps/table_workspace_edited.yaml"           doc="filepath to previously captured map (required)" />
     <arg name="rviz"     default="true" doc="whether to show Rviz" />
     
     <include file="$(find stretch_navigation)/launch/navigation_no_amcl.launch" pass_all_args="true" />
@@ -8,6 +8,9 @@
     <!-- STRECH CAMERA ARUCO DRIVERS -->
     <include file="$(find stretch_core)/launch/d435i_high_resolution.launch" />
     <include file="$(find stretch_core)/launch/stretch_aruco.launch" />
+    
+    <!-- NATNET NODE FOR OPTITRACK -->
+    <include file="$(find natnet_ros_cpp)/launch/natnet_ros.launch"/>
 
     <!-- STRETCH PUTAWAY NODE-->
     
