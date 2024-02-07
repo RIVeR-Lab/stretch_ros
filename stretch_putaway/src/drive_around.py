@@ -14,54 +14,8 @@ import tf2_ros
 from tf2_ros import Buffer, TransformListener
 import yaml
 import tf.transformations as tft
+from copy import deepcopy
 
-def localize_robot(map_initial_tf_file='map_starting_tf.yaml'):
-    ''' Calculate the different between the initial map transform and the current transform
-        Transforms are taken with respect from the Optitrack stretch_head to the Optitrack table
-        The initial transform is taken from the initial map transform file, which stores the starting point of the robot when mapping was done
-        returns a transform to be set as the position of the robot in the map'''
-    rospy.loginfo('Localizing robot')
-    tf2_buffer = Buffer()
-    tf2_listener = TransformListener(tf2_buffer)
-    rospack = rospkg.RosPack()
-    with open(rospack.get_path('stretch_putaway') + '/config/' + map_initial_tf_file, 'r') as f:
-        map_initial_tf_data = yaml.safe_load(f)
-    print(map_initial_tf_data)
-    initial_tf = TransformStamped()
-    initial_tf.header.frame_id = map_initial_tf_data['frame_id']
-    initial_tf.child_frame_id = map_initial_tf_data['child_frame_id']
-    initial_tf.transform.translation.x = map_initial_tf_data['transform']['translation']['x']
-    initial_tf.transform.translation.y = map_initial_tf_data['transform']['translation']['y']
-    initial_tf.transform.translation.z = map_initial_tf_data['transform']['translation']['z']
-    initial_tf.transform.rotation.x = map_initial_tf_data['transform']['rotation']['x']
-    initial_tf.transform.rotation.y = map_initial_tf_data['transform']['rotation']['y']
-    initial_tf.transform.rotation.z = map_initial_tf_data['transform']['rotation']['z']
-    initial_tf.transform.rotation.w = map_initial_tf_data['transform']['rotation']['w']
-    
-    return initial_tf
-    # # Get current tf from stretch_head to table
-    # current_tf = None
-    # while current_tf is None:
-    #     try:
-    #         current_tf = tf2_buffer.lookup_transform('table', 'stretch_head', rospy.Time())
-    #     except:
-    #         continue
-
-    # tf_diff = TransformStamped()
-    # tf_diff.transform.translation.x = current_tf.transform.translation.x - initial_tf.transform.translation.x
-    # tf_diff.transform.translation.y = current_tf.transform.translation.y - initial_tf.transform.translation.y
-    # tf_diff.transform.translation.z = current_tf.transform.translation.z - initial_tf.transform.translation.z
-    # quat_diff = tft.quaternion_multiply([current_tf.transform.rotation.x, current_tf.transform.rotation.y, current_tf.transform.rotation.z, current_tf.transform.rotation.w], 
-    #                                     tft.quaternion_inverse([initial_tf.transform.rotation.x, initial_tf.transform.rotation.y, initial_tf.transform.rotation.z, initial_tf.transform.rotation.w]))
-    # tf_diff.transform.rotation.x = quat_diff[0]
-    # tf_diff.transform.rotation.y = quat_diff[1]
-    # tf_diff.transform.rotation.z = quat_diff[2]
-    # tf_diff.transform.rotation.w = quat_diff[3]
-    
-    
-    # print(tf_diff)
-
-    # return tf_diff
 
     
 
@@ -79,20 +33,21 @@ class PutAwayNode():
         self.move_base_goal = MoveBaseGoal()
         self.move_base_simple_goal_publisher = rospy.Publisher('move_base_simple/goal', Pose, queue_size=1)
 
-
-        self.initial_tf = localize_robot()
-        self.initial_tf.child_frame_id = 'original_stretch_head'
+        odom_tf, initial_tf = self.get_initial_tf()
         while not rospy.is_shutdown():
-            self.initial_tf.header.stamp = rospy.Time.now()
-            self.br.sendTransform(self.initial_tf)
-            stretch_tf_diff = self.tf2_buffer.lookup_transform('original_stretch_head', 'stretch_head', rospy.Time(), rospy.Duration(2.0))
+            odom_tf.header.stamp = rospy.Time.now()
+            initial_tf.header.stamp = rospy.Time.now()
+            self.br.sendTransform(odom_tf)
+            self.br.sendTransform(initial_tf)
+
+            stretch_tf_diff = self.tf2_buffer.lookup_transform('initial_stretch_head', 'stretch_head', rospy.Time(), rospy.Duration(5.0))
             stretch_tf_diff.header.stamp = rospy.Time.now()
-            stretch_tf_diff.child_frame_id = 'odom'
-            stretch_tf_diff.header.frame_id = 'map'
+            stretch_tf_diff.child_frame_id = 'base_link'
+            stretch_tf_diff.header.frame_id = 'odom'
             stretch_tf_diff.transform.translation.z = 0
             self.br.sendTransform(stretch_tf_diff)
 
-            map_tf = self.tf2_buffer.lookup_transform('world', 'table', rospy.Time(), rospy.Duration(1.0))
+            map_tf = self.tf2_buffer.lookup_transform('world', 'optitrack_table', rospy.Time(), rospy.Duration(1.0))
 
 
             self.rate.sleep()
@@ -106,6 +61,19 @@ class PutAwayNode():
         #     self.tf_diff.header.stamp = rospy.Time.now()
         #     self.br.sendTransform(self.tf_diff)
         #     self.rate.sleep()
+
+
+    def get_initial_tf(self):
+        initial_tf_diff = self.tf2_buffer.lookup_transform('original_stretch_head', 'stretch_head', rospy.Time(), rospy.Duration(5.0))
+        odom_diff = deepcopy(initial_tf_diff)
+        odom_diff.header.stamp = rospy.Time.now()
+        odom_diff.child_frame_id = 'odom'
+        odom_diff.header.frame_id = 'map'
+        odom_diff.transform.translation.z = 0
+        initial_tf_diff.child_frame_id = 'initial_stretch_head'
+        # self.br.sendTransform(initial_tf_diff)
+        print(odom_diff, initial_tf_diff)
+        return odom_diff, initial_tf_diff
 
 
     def move_base(self, goal_pose):
