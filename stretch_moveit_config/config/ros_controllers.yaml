@@ -1,0 +1,88 @@
+# Publish all joint states
+# Creates the /joint_states topic necessary in ROS
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+controller_list:
+  - name: Arm_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - joint_lift
+      - joint_arm_l3
+      - joint_arm_l2
+      - joint_arm_l1
+      - joint_arm_l0
+      - joint_wrist_yaw
+      - joint_wrist_pitch
+      - joint_wrist_roll
+  - name: stretch_head_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - joint_head_pan
+      - joint_head_tilt
+  - name: stretch_gripper_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - joint_gripper_finger_left
+      - joint_gripper_finger_right
+
+
+
+# Arm_controller:
+#   type: effort_controllers/JointTrajectoryController
+#   joints:
+#     - joint_lift
+#     - joint_arm_l3
+#     - joint_arm_l2
+#     - joint_arm_l1
+#     - joint_arm_l0
+#     - joint_wrist_yaw
+#     - joint_wrist_pitch
+#     - joint_wrist_roll
+#   gains:
+#     joint_lift:
+#       p: 100
+#       d: 1
+#       i: 1
+#       i_clamp: 1
+#     joint_arm_l3:
+#       p: 100
+#       d: 1
+#       i: 1
+#       i_clamp: 1
+#     joint_arm_l2:
+#       p: 100
+#       d: 1
+#       i: 1
+#       i_clamp: 1
+#     joint_arm_l1:
+#       p: 100
+#       d: 1
+#       i: 1
+#       i_clamp: 1
+#     joint_arm_l0:
+#       p: 100
+#       d: 1
+#       i: 1
+#       i_clamp: 1
+#     joint_wrist_yaw:
+#       p: 100
+#       d: 1
+#       i: 1
+#       i_clamp: 1
+#     joint_wrist_pitch:
+#       p: 100
+#       d: 1
+#       i: 1
+#       i_clamp: 1
+#     joint_wrist_roll:
+#       p: 100
+#       d: 1
+#       i: 1
+#       i_clamp: 1

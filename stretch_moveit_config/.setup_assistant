@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: stretch_description
+    relative_path: urdf/stretch.urdf
+    xacro_args: ""
+  SRDF:
+    relative_path: config/stretch_description.srdf
+  CONFIG:
+    author_name: Drake
+    author_email: moore.dr@northeastern.edu
+    generated_timestamp: 1707772360
