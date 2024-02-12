@@ -713,10 +713,13 @@ class FunmapNode(hm.HelloNode):
         reach_xyz_pix = clicked_image_pixel
         robot_reach_xya_pix, simple_reach_plan = self.plan_to_reach(
             reach_xyz_pix, robot_xya_pix=robot_xya_pix)
+        
+        floor_mask = sm.compute_floor_mask(max_height_im)
 
         success, message = self.navigate_to_map_pixel(robot_reach_xya_pix[:2],
                                                       end_angle=robot_reach_xya_pix[2],
-                                                      robot_xya_pix=robot_xya_pix)
+                                                      robot_xya_pix=robot_xya_pix,
+                                                      floor_mask=floor_mask)
 
         if success:
             for pose in simple_reach_plan:
