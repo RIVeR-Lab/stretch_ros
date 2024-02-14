@@ -13,7 +13,7 @@
         <chain base_link="base_link" tip_link="link_grasp_center"/>
     </group>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="grasp_center" parent_link="link_grasp_center" group="Arm"/>
+    <!-- <end_effector name="grasp_center" parent_link="link_grasp_center" group="Arm"/> -->
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="base_link" link2="camera_link" reason="Never"/>
     <disable_collisions link1="base_link" link2="caster_link" reason="Adjacent"/>

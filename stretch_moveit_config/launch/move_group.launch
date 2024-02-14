@@ -14,7 +14,7 @@
   <!-- move_group settings -->
   <arg name="pipeline" default="ompl" />
   <arg name="allow_trajectory_execution" default="true"/>
-  <arg name="moveit_controller_manager" default="stretch_description" />
+  <arg name="moveit_controller_manager" default="ros_control" />
   <arg name="max_safe_path_cost" default="1"/>
   <arg name="publish_monitored_planning_scene" default="true"/>
 
@@ -46,7 +46,7 @@
   <!-- <group ns="move_group/planning_pipelines"> -->
 
   <!-- OMPL -->
-  <include ns="move_group/planning_pipeline" file="$(dirname)/planning_pipeline.launch.xml">
+  <include ns="move_group/planning_pipelines" file="$(dirname)/planning_pipeline.launch.xml">
     <arg name="pipeline" value="ompl" />
   </include>
 
