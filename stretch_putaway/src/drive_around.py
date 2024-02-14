@@ -15,7 +15,7 @@ from tf2_ros import Buffer, TransformListener
 import yaml
 import tf.transformations as tft
 from copy import deepcopy
-
+import stretch_body.robot as rb
 
     
 
