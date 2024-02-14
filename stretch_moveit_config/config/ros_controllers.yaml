@@ -10,6 +10,7 @@ controller_list:
     type: FollowJointTrajectory
     joints:
       - joint_lift
+      - joint_arm
       - joint_arm_l3
       - joint_arm_l2
       - joint_arm_l1
