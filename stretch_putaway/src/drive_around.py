@@ -16,7 +16,7 @@ import yaml
 import tf.transformations as tft
 from copy import deepcopy
 import stretch_body.robot as rb
-
+import std_srvs
     
 
     
@@ -33,34 +33,31 @@ class PutAwayNode():
         self.move_base_goal = MoveBaseGoal()
         self.move_base_simple_goal_publisher = rospy.Publisher('move_base_simple/goal', Pose, queue_size=1)
 
+        rospy.wait_for_service('/stow_the_robot')
+        self.stow_the_robot = rospy.ServiceProxy('/stow_the_robot', std_srvs.Trigger)
+        self.stow_the_robot()
+
         odom_tf, initial_tf = self.get_initial_tf()
+
+        
         while not rospy.is_shutdown():
             odom_tf.header.stamp = rospy.Time.now()
             initial_tf.header.stamp = rospy.Time.now()
             self.br.sendTransform(odom_tf)
             self.br.sendTransform(initial_tf)
 
-            stretch_tf_diff = self.tf2_buffer.lookup_transform('initial_stretch_head', 'stretch_head', rospy.Time(), rospy.Duration(5.0))
-            stretch_tf_diff.header.stamp = rospy.Time.now()
-            stretch_tf_diff.child_frame_id = 'base_link'
-            stretch_tf_diff.header.frame_id = 'odom'
-            stretch_tf_diff.transform.translation.z = 0
-            self.br.sendTransform(stretch_tf_diff)
+            # stretch_tf_diff = self.tf2_buffer.lookup_transform('initial_stretch_head', 'stretch_head', rospy.Time(), rospy.Duration(5.0))
+            # stretch_tf_diff.header.stamp = rospy.Time.now()
+            # stretch_tf_diff.child_frame_id = 'base_link'
+            # stretch_tf_diff.header.frame_id = 'odom'
+            # stretch_tf_diff.transform.translation.z = 0
+            # self.br.sendTransform(stretch_tf_diff)
 
-            map_tf = self.tf2_buffer.lookup_transform('world', 'optitrack_table', rospy.Time(), rospy.Duration(1.0))
+            
 
 
-            self.rate.sleep()
-        
-        # self.tf_diff = localize_robot()
-        # # self.tf_diff.transform.translation.z = 0
-        # self.tf_diff.header.frame_id = 'stretch_head'
-        # self.tf_diff.child_frame_id = 'odom'
-        # print(self.tf_diff, type(self.tf_diff))
-        # while not rospy.is_shutdown():
-        #     self.tf_diff.header.stamp = rospy.Time.now()
-        #     self.br.sendTransform(self.tf_diff)
-        #     self.rate.sleep()
+
+            self.rate.sleep
 
 
     def get_initial_tf(self):
