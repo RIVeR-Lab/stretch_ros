@@ -40,7 +40,7 @@ class JointTrajectoryAction:
         self.command_groups = [self.arm_cg, self.lift_cg, self.mobile_base_cg, self.head_pan_cg,
                                self.head_tilt_cg, self.wrist_yaw_cg, self.gripper_cg]
         self.command_groups = [cg for cg in self.command_groups if cg is not None]
-
+        # rospy.loginfo("Command groups: {0}".format(self.command_groups))
         for joint in self.node.robot.end_of_arm.joints:
             module_name = self.node.robot.end_of_arm.params['devices'][joint].get('ros_py_module_name')
             class_name = self.node.robot.end_of_arm.params['devices'][joint].get('ros_py_class_name')
@@ -93,7 +93,7 @@ class JointTrajectoryAction:
         # Try to reach each of the goals in sequence until
         # an error is detected or success is achieved.
         for pointi, point in enumerate(goal.trajectory.points):
-            rospy.logdebug(("{0} joint_traj action: "
+            rospy.loginfo(("{0} joint_traj action: "
                             "target point #{1} = <{2}>").format(self.node.node_name, pointi, point))
 
             valid_goals = [c.set_goal(point, self.invalid_goal_callback, self.node.fail_out_of_range_goal)
@@ -155,21 +155,21 @@ class JointTrajectoryAction:
 
     def invalid_joints_callback(self, err_str):
         if self.server.is_active() or self.server.is_preempt_requested():
-            rospy.logerr("{0} joint_traj action: {1}".format(self.node.node_name, err_str))
+            rospy.logerr("{0} joint_traj invalid_joints action: {1}".format(self.node.node_name, err_str))
             self.result.error_code = self.result.INVALID_JOINTS
             self.result.error_string = err_str
             self.server.set_aborted(self.result)
 
     def invalid_goal_callback(self, err_str):
         if self.server.is_active() or self.server.is_preempt_requested():
-            rospy.logerr("{0} joint_traj action: {1}".format(self.node.node_name, err_str))
+            rospy.logerr("{0} joint_traj invalid_goal action: {1}".format(self.node.node_name, err_str))
             self.result.error_code = self.result.INVALID_GOAL
             self.result.error_string = err_str
             self.server.set_aborted(self.result)
 
     def goal_tolerance_violated_callback(self, err_str):
         if self.server.is_active() or self.server.is_preempt_requested():
-            rospy.logerr("{0} joint_traj action: {1}".format(self.node.node_name, err_str))
+            rospy.logerr("{0} joint_traj goal_tolerance_violated action: {1}".format(self.node.node_name, err_str))
             self.result.error_code = self.result.GOAL_TOLERANCE_VIOLATED
             self.result.error_string = err_str
             self.server.set_aborted(self.result)
@@ -198,7 +198,7 @@ class JointTrajectoryAction:
         self.server.publish_feedback(self.feedback)
 
     def success_callback(self, success_str):
-        rospy.loginfo("{0} joint_traj action: {1}".format(self.node.node_name, success_str))
+        rospy.loginfo("{0} joint_traj success action: {1}".format(self.node.node_name, success_str))
         self.result.error_code = self.result.SUCCESSFUL
         self.result.error_string = success_str
         self.server.set_succeeded(self.result)
