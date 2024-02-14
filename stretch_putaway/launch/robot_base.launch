@@ -1,10 +1,10 @@
 <launch>
     <!-- STRETCH DRIVER NAVIGATION -->
-    <arg name="map_yaml" default="/home/hello-robot/stretch_user/maps/stretch_workspace_edited.yaml"
+    <arg name="map_yaml" default="/home/hello-robot/stretch_user/maps/stretch_taped_workspace.yaml"
                doc="filepath to previously captured map (required)" />
     <arg name="rviz"     default="true" doc="whether to show Rviz" />
     
-    <include file="$(find stretch_navigation)/launch/navigation_no_amcl.launch" pass_all_args="true" />
+    <include file="$(find stretch_navigation)/launch/navigation.launch" pass_all_args="true" />
 
     <!-- STRECH CAMERA ARUCO DRIVERS -->
     <include file="$(find stretch_core)/launch/d435i_high_resolution.launch" />
@@ -14,7 +14,9 @@
     <include file="$(find natnet_ros_cpp)/launch/natnet_ros.launch"/>
     
     <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_original_stretch_head" output="screen" 
-            args="-0.845 -1.070 1.434 0.001 0.0 -0.001 1 world original_stretch_head"/>
+            args="-0.829 -1.173 1.434 0.003 0.003 -0.068 0.998 world original_stretch_head"/>
+
+    <node pkg="stretch_putaway" type="localize_odom" name="localize_odom" output="screen" />
 
     <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="aruco_marker_to_detected_marker" output="screen" 
             args="0 0 0 0 0.0 0 1 aruco_table aruco_detected_table"/> -->

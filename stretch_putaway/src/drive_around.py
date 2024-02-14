@@ -6,7 +6,7 @@ import actionlib
 import py_trees
 from actionlib_msgs.msg import GoalStatus
 from math import sqrt, pow
-from geometry_msgs.msg import PoseStamped, TransformStamped
+from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import tf2_ros
 # from hello_helpers import HelloNode
@@ -37,41 +37,10 @@ class PutAwayNode():
         self.stow_the_robot = rospy.ServiceProxy('/stow_the_robot', std_srvs.Trigger)
         self.stow_the_robot()
 
-        self.odom_tf, self.initial_tf = self.get_initial_tf()
+        self.robot = rb.Robot()
 
-        
-        while not rospy.is_shutdown():
-            self.odom_tf.header.stamp = rospy.Time.now()
-            self.initial_tf.header.stamp = rospy.Time.now()
-            self.br.sendTransform(self.odom_tf)
-            self.br.sendTransform(self.initial_tf)
-
-            # stretch_tf_diff = self.tf2_buffer.lookup_transform('initial_stretch_head', 'stretch_head', rospy.Time(), rospy.Duration(5.0))
-            # stretch_tf_diff.header.stamp = rospy.Time.now()
-            # stretch_tf_diff.child_frame_id = 'base_link'
-            # stretch_tf_diff.header.frame_id = 'odom'
-            # stretch_tf_diff.transform.translation.z = 0
-            # self.br.sendTransform(stretch_tf_diff)
-
-            
-
-
-
-            self.rate.sleep
-
-
-    def get_initial_tf(self):
-        initial_tf_diff = self.tf2_buffer.lookup_transform('original_stretch_head', 'stretch_head', rospy.Time(), rospy.Duration(5.0))
-        odom_diff = deepcopy(initial_tf_diff)
-        odom_diff.header.stamp = rospy.Time.now()
-        odom_diff.child_frame_id = 'odom'
-        odom_diff.header.frame_id = 'map'
-        odom_diff.transform.translation.z = 0
-        initial_tf_diff.child_frame_id = 'initial_stretch_head'
-        # self.br.sendTransform(initial_tf_diff)
-        print(odom_diff, initial_tf_diff)
-        return odom_diff, initial_tf_diff
-
+        map_pose = Pose()
+        self.move_base(map_pose)
 
     def move_base(self, goal_pose):
         self.move_base_client.wait_for_server()
