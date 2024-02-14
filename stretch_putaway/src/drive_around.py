@@ -6,7 +6,7 @@ import actionlib
 import py_trees
 from actionlib_msgs.msg import GoalStatus
 from math import sqrt, pow
-from geometry_msgs.msg import Pose, TransformStamped
+from geometry_msgs.msg import PoseStamped, TransformStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 import tf2_ros
 # from hello_helpers import HelloNode
@@ -31,20 +31,20 @@ class PutAwayNode():
         self.move_base_client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         # self.visual_servo_client = actionlib.SimpleActionClient('visual_servo', VisualServoAction)
         self.move_base_goal = MoveBaseGoal()
-        self.move_base_simple_goal_publisher = rospy.Publisher('move_base_simple/goal', Pose, queue_size=1)
+        self.move_base_simple_goal_publisher = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size=1)
 
         rospy.wait_for_service('/stow_the_robot')
         self.stow_the_robot = rospy.ServiceProxy('/stow_the_robot', std_srvs.Trigger)
         self.stow_the_robot()
 
-        odom_tf, initial_tf = self.get_initial_tf()
+        self.odom_tf, self.initial_tf = self.get_initial_tf()
 
         
         while not rospy.is_shutdown():
-            odom_tf.header.stamp = rospy.Time.now()
-            initial_tf.header.stamp = rospy.Time.now()
-            self.br.sendTransform(odom_tf)
-            self.br.sendTransform(initial_tf)
+            self.odom_tf.header.stamp = rospy.Time.now()
+            self.initial_tf.header.stamp = rospy.Time.now()
+            self.br.sendTransform(self.odom_tf)
+            self.br.sendTransform(self.initial_tf)
 
             # stretch_tf_diff = self.tf2_buffer.lookup_transform('initial_stretch_head', 'stretch_head', rospy.Time(), rospy.Duration(5.0))
             # stretch_tf_diff.header.stamp = rospy.Time.now()
