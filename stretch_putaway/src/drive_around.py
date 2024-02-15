@@ -40,7 +40,12 @@ class PutAwayNode(HelloNode):
         rospy.sleep(4)
 
         self.robot = rb.Robot()
-        self.grasp_pose()
+        left_table_pose = Pose()
+        left_table_pose.position.x = 0.75
+        left_table_pose.position.y = 2
+        left_table_pose.orientation.w = 1
+        # self.move_base(left_table_pose)
+        self.grasp_object()
 
         # self.circle_table()
 
@@ -62,17 +67,26 @@ class PutAwayNode(HelloNode):
         table_poses[0].orientation.w = 1
         table_poses[1] = Pose()
         table_poses[1].position.x = -1
-        table_poses[1].position.y = -2
+        table_poses[1].position.y = 2
         table_poses[1].orientation.w = 1
         for pose in table_poses:
             print('moving to pose', pose)
             self.move_base(pose)
 
-    def grasp_pose(self):
-        HelloNode.move_to_pose(self, {'joint_wrist_roll': 0.4,
-                                      'joint_wrist_pitch': -0.4,
-                                      'joint_wrist_yaw': 0.75,
-                                      'joint_arm': 0.5})
+    def grasp_object(self, arm_length=0.3):
+        HelloNode.move_to_pose(self, {'joint_wrist_roll': 0.0,
+                                      'joint_gripper_finger_left':0.25,
+                                      'joint_lift': 1.05})
+        HelloNode.move_to_pose(self, {'joint_arm': arm_length,
+                                      'joint_wrist_yaw': 0.0})
+        
+        HelloNode.move_to_pose(self, {'joint_wrist_pitch': -0.5})
+
+        HelloNode.move_to_pose(self, {'joint_gripper_finger_left':-0.25})
+        rospy.sleep(3)
+        HelloNode.move_to_pose(self, {'joint_wrist_pitch': 0})
+        HelloNode.move_to_pose(self, {'joint_arm' : 0,
+                                      'joint_wrist_yaw': 3.0})
 
 
     
