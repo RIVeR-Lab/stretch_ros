@@ -16,7 +16,7 @@ import yaml
 import tf.transformations as tft
 from copy import deepcopy
 import stretch_body.robot as rb
-import std_srvs
+from std_srvs.srv import Empty, Trigger
     
 
     
@@ -42,19 +42,20 @@ class LocalizeNode():
         zero_pose.pose.pose.orientation.w = self.odom_tf.transform.rotation.w
         
         zero_pose.pose.covariance = [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853892326654787]
-        
-        zero_pose.header.stamp = rospy.Time.now()
-        for i in range(10):
+        print("Published pose", zero_pose)
+        while not rospy.is_shutdown():
+            zero_pose.header.stamp = rospy.Time.now()
             self.initial_pose_pub.publish(zero_pose)
+            self.rate.sleep()
 
         # while not rospy.is_shutdown():
 
-        self.odom_tf.header.stamp = rospy.Time.now()
-        self.initial_tf.header.stamp = rospy.Time.now()
-        self.br.sendTransform(self.odom_tf)
-        self.br.sendTransform(self.initial_tf)
+            self.odom_tf.header.stamp = rospy.Time.now()
+            self.initial_tf.header.stamp = rospy.Time.now()
+            self.br.sendTransform(self.odom_tf)
+            self.br.sendTransform(self.initial_tf)
 
-        self.rate.sleep()
+            self.rate.sleep()
 
 
     def get_initial_tf(self):
