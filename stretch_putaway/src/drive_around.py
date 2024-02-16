@@ -44,7 +44,8 @@ class PutAwayNode(HelloNode):
         left_table_pose.position.x = 0.75
         left_table_pose.position.y = 2
         left_table_pose.orientation.w = 1
-        # self.move_base(left_table_pose)
+        self.move_base(left_table_pose)
+        self.look_to_side()
         self.grasp_object()
 
         # self.circle_table()
@@ -73,20 +74,27 @@ class PutAwayNode(HelloNode):
             print('moving to pose', pose)
             self.move_base(pose)
 
-    def grasp_object(self, arm_length=0.3):
-        HelloNode.move_to_pose(self, {'joint_wrist_roll': 0.0,
-                                      'joint_gripper_finger_left':0.25,
-                                      'joint_lift': 1.05})
-        HelloNode.move_to_pose(self, {'joint_arm': arm_length,
-                                      'joint_wrist_yaw': 0.0})
-        
-        HelloNode.move_to_pose(self, {'joint_wrist_pitch': -0.5})
+    def look_to_side(self):
+        HelloNode.move_to_pose(self, {'joint_head_pan': -1.5,
+                                      'joint_head_tilt': -0.4})
 
-        HelloNode.move_to_pose(self, {'joint_gripper_finger_left':-0.25})
+    def grasp_object(self, arm_length=0.4):
+        HelloNode.move_to_pose(self, {'joint_wrist_roll': 0.0,
+                                      'joint_lift': 1.05})
+        
+        HelloNode.move_to_pose(self, {'joint_arm': arm_length,
+                                      'joint_gripper_finger_left' : 0.25,
+                                      'joint_wrist_yaw': 0.0,
+                                      'joint_wrist_pitch' : -0.5})
+        
+        # HelloNode.move_to_pose(self, {'joint_wrist_pitch': -0.5})
+
+        # Close the gripper and wait for grasp
+        HelloNode.move_to_pose(self, {'joint_gripper_finger_left' : -0.25})
         rospy.sleep(3)
-        HelloNode.move_to_pose(self, {'joint_wrist_pitch': 0})
-        HelloNode.move_to_pose(self, {'joint_arm' : 0,
-                                      'joint_wrist_yaw': 3.0})
+        # HelloNode.move_to_pose(self, {'joint_wrist_pitch': 0})
+        # HelloNode.move_to_pose(self, {'joint_arm' : 0,
+        #                               'joint_wrist_yaw': 3.0})
 
 
     
