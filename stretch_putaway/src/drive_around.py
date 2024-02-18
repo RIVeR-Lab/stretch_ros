@@ -19,7 +19,8 @@ import tf.transformations as tft
 from copy import deepcopy
 import stretch_body.robot as rb
 from std_srvs.srv import Trigger
-    
+from std_msgs.msg import String
+import math    
 
     
 class PutAwayNode(HelloNode):
@@ -34,10 +35,15 @@ class PutAwayNode(HelloNode):
         # self.visual_servo_client = actionlib.SimpleActionClient('visual_servo', VisualServoAction)
         self.move_base_goal = MoveBaseGoal()
         self.move_base_simple_goal_publisher = rospy.Publisher('move_base_simple/goal', PoseStamped, queue_size=1)
+        self.mode_pub = rospy.Publisher('/mode', String, queue_size=1)
+        self.navigation_mode_service = rospy.ServiceProxy('switch_to_navigation_mode', Trigger)
+        self.position_mode_service = rospy.ServiceProxy('switch_to_position_mode', Trigger)
+
 
 
         self.stow_the_robot()
         rospy.sleep(4)
+
 
         self.robot = rb.Robot()
         left_table_pose = Pose()
@@ -45,8 +51,8 @@ class PutAwayNode(HelloNode):
         left_table_pose.position.y = 2
         left_table_pose.orientation.w = 1
         self.move_base(left_table_pose)
-        self.look_to_side()
-        self.grasp_object()
+        # self.look_to_side()
+        # self.grasp_object()
 
         # self.circle_table()
 
@@ -58,8 +64,29 @@ class PutAwayNode(HelloNode):
         print("Sending goal")
         self.move_base_client.send_goal(self.move_base_goal)
         self.move_base_client.wait_for_result()
-        return self.move_base_client.get_result()
-    
+
+        rospy.loginfo("Fine tuning with optitrack localization")
+        self.position_mode_service()
+        stretch_opti_tf = HelloNode.get_tf(self, 'original_stretch_head', 'stretch_head').transform
+        stretch_opti_quaternion_inv = [stretch_opti_tf.rotation.x, stretch_opti_tf.rotation.y, stretch_opti_tf.rotation.z, -stretch_opti_tf.rotation.w]
+        goal_pose_quaternion = [goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z, goal_pose.orientation.w]
+
+        quat_diff = tft.quaternion_multiply(goal_pose_quaternion, stretch_opti_quaternion_inv)
+        
+        rotation_diff = tft.euler_from_quaternion(quat_diff)
+        print("Rotation diff", rotation_diff)
+        # return
+        HelloNode.move_to_pose(self, {'rotate_mobile_base': rotation_diff[2]})
+        # stretch_opti_tf = HelloNode.get_tf(self, 'original_stretch_head', 'stretch_head').transform
+
+        # Assume orientation is correct, now move forward or backward to the correct position
+        translation_diff = math.hypot(goal_pose.position.x - stretch_opti_tf.translation.x, goal_pose.position.y - stretch_opti_tf.translation.y)
+        print("Translation diff (x)" , translation_diff)
+        HelloNode.move_to_pose(self, {'translate_mobile_base': translation_diff})
+        stretch_opti_tf = HelloNode.get_tf(self, 'original_stretch_head', 'stretch_head').transform 
+        print("Post translation", math.hypot(goal_pose.position.x - stretch_opti_tf.translation.x, goal_pose.position.y - stretch_opti_tf.translation.y))
+
+        self.navigation_mode_service()
 
     def circle_table(self):
         table_poses = [None] * 2
