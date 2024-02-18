@@ -41,8 +41,8 @@ class PutAwayNode(HelloNode):
 
 
 
-        self.stow_the_robot()
-        rospy.sleep(4)
+        self.high_stow()
+        rospy.sleep(2)
 
 
         self.robot = rb.Robot()
@@ -50,9 +50,10 @@ class PutAwayNode(HelloNode):
         left_table_pose.position.x = 0.75
         left_table_pose.position.y = 2
         left_table_pose.orientation.w = 1
-        self.move_base(left_table_pose)
+        arm_length_diff = self.move_base(left_table_pose)
+        print("Arm length diff", arm_length_diff)
         # self.look_to_side()
-        # self.grasp_object()
+        self.grasp_object(arm_length = 0.4 +arm_length_diff)
 
         # self.circle_table()
 
@@ -64,6 +65,8 @@ class PutAwayNode(HelloNode):
         print("Sending goal")
         self.move_base_client.send_goal(self.move_base_goal)
         self.move_base_client.wait_for_result()
+
+        rospy.sleep(3)
 
         rospy.loginfo("Fine tuning with optitrack localization")
         self.position_mode_service()
@@ -78,6 +81,7 @@ class PutAwayNode(HelloNode):
         # return
         HelloNode.move_to_pose(self, {'rotate_mobile_base': rotation_diff[2]})
         # stretch_opti_tf = HelloNode.get_tf(self, 'original_stretch_head', 'stretch_head').transform
+        rospy.sleep(2)
 
         # Assume orientation is correct, now move forward or backward to the correct position
         translation_diff = math.hypot(goal_pose.position.x - stretch_opti_tf.translation.x, goal_pose.position.y - stretch_opti_tf.translation.y)
@@ -87,6 +91,8 @@ class PutAwayNode(HelloNode):
         print("Post translation", math.hypot(goal_pose.position.x - stretch_opti_tf.translation.x, goal_pose.position.y - stretch_opti_tf.translation.y))
 
         self.navigation_mode_service()
+
+        return goal_pose.position.y - stretch_opti_tf.translation.y
 
     def circle_table(self):
         table_poses = [None] * 2
@@ -118,10 +124,17 @@ class PutAwayNode(HelloNode):
 
         # Close the gripper and wait for grasp
         HelloNode.move_to_pose(self, {'joint_gripper_finger_left' : -0.25})
-        rospy.sleep(3)
+        rospy.sleep(5)
+        self.high_stow()
         # HelloNode.move_to_pose(self, {'joint_wrist_pitch': 0})
         # HelloNode.move_to_pose(self, {'joint_arm' : 0,
         #                               'joint_wrist_yaw': 3.0})
+
+    def high_stow(self):
+        HelloNode.move_to_pose(self, {'joint_wrist_pitch': 0})
+        HelloNode.move_to_pose(self, {'joint_arm' : 0,
+                                      'joint_wrist_yaw': 3.0,
+                                      'joint_gripper_finger_left' : 0})
 
 
     
