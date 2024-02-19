@@ -21,7 +21,7 @@ import stretch_body.robot as rb
 from std_srvs.srv import Trigger
 from std_msgs.msg import String
 import math    
-
+from tf2_geometry_msgs import PoseStamped as TF2PoseStamped
     
 class PutAwayNode(HelloNode):
     def __init__(self):
@@ -84,15 +84,25 @@ class PutAwayNode(HelloNode):
         rospy.sleep(2)
 
         # Assume orientation is correct, now move forward or backward to the correct position
-        translation_diff = math.hypot(goal_pose.position.x - stretch_opti_tf.translation.x, goal_pose.position.y - stretch_opti_tf.translation.y)
+        goal_pose_stamped = TF2PoseStamped()
+        goal_pose_stamped.header.frame_id = "original_stretch_head"
+        goal_pose_stamped.header.stamp = rospy.Time.now()
+        goal_pose_stamped.pose = goal_pose
+        goal_pose_stretch_opti_frame = self.tf2_buffer.transform(goal_pose_stamped, 'stretch_head', rospy.Duration(3))
+        translation_diff = goal_pose_stretch_opti_frame.pose.position.x
+        # translation_diff = math.hypot(goal_pose.position.x - stretch_opti_tf.translation.x, goal_pose.position.y - stretch_opti_tf.translation.y)
         print("Translation diff (x)" , translation_diff)
         HelloNode.move_to_pose(self, {'translate_mobile_base': translation_diff})
         stretch_opti_tf = HelloNode.get_tf(self, 'original_stretch_head', 'stretch_head').transform 
-        print("Post translation", math.hypot(goal_pose.position.x - stretch_opti_tf.translation.x, goal_pose.position.y - stretch_opti_tf.translation.y))
+
+        # Output position in difference after translation
+        goal_pose_stretch_opti_frame_post = self.tf2_buffer.transform(goal_pose_stamped, 'stretch_head', rospy.Duration(3))
+        print("Post translation", goal_pose_stretch_opti_frame_post.pose.position.x)
 
         self.navigation_mode_service()
 
-        return goal_pose.position.y - stretch_opti_tf.translation.y
+        # Return Y offset to account for arm length difference
+        return goal_pose_stretch_opti_frame.pose.position.y
 
     def circle_table(self):
         table_poses = [None] * 2
