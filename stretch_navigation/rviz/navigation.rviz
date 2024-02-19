@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Odometry1/Shape1
         - /Path to Goal1
+        - /TF1
+        - /TF1/Frames1
       Splitter Ratio: 0.6117647290229797
     Tree Height: 539
   - Class: rviz/Selection
@@ -187,11 +189,6 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        link_gripper:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         link_gripper_finger_left:
           Alpha: 1
           Show Axes: false
@@ -247,7 +244,27 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        link_straight_gripper:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_wrist_pitch:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_wrist_roll:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         link_wrist_yaw:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        link_wrist_yaw_bottom:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -472,6 +489,210 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        aruco_detected_table:
+          Value: true
+        aruco_table:
+          Value: false
+        base_link:
+          Value: true
+        camera_accel_frame:
+          Value: false
+        camera_accel_optical_frame:
+          Value: false
+        camera_aligned_depth_to_color_frame:
+          Value: false
+        camera_bottom_screw_frame:
+          Value: false
+        camera_color_frame:
+          Value: false
+        camera_color_optical_frame:
+          Value: false
+        camera_depth_frame:
+          Value: false
+        camera_depth_optical_frame:
+          Value: false
+        camera_gyro_frame:
+          Value: false
+        camera_gyro_optical_frame:
+          Value: false
+        camera_infra1_frame:
+          Value: false
+        camera_infra1_optical_frame:
+          Value: false
+        camera_infra2_frame:
+          Value: false
+        camera_infra2_optical_frame:
+          Value: false
+        camera_link:
+          Value: false
+        caster_link:
+          Value: false
+        centered_base_link:
+          Value: false
+        laser:
+          Value: false
+        link_arm_l0:
+          Value: false
+        link_arm_l1:
+          Value: false
+        link_arm_l2:
+          Value: false
+        link_arm_l3:
+          Value: false
+        link_arm_l4:
+          Value: false
+        link_aruco_inner_wrist:
+          Value: false
+        link_aruco_left_base:
+          Value: false
+        link_aruco_right_base:
+          Value: false
+        link_aruco_shoulder:
+          Value: false
+        link_aruco_top_wrist:
+          Value: false
+        link_grasp_center:
+          Value: false
+        link_gripper_finger_left:
+          Value: false
+        link_gripper_finger_right:
+          Value: false
+        link_gripper_fingertip_left:
+          Value: false
+        link_gripper_fingertip_right:
+          Value: false
+        link_head:
+          Value: false
+        link_head_pan:
+          Value: false
+        link_head_tilt:
+          Value: false
+        link_left_wheel:
+          Value: false
+        link_lift:
+          Value: false
+        link_mast:
+          Value: false
+        link_right_wheel:
+          Value: false
+        link_straight_gripper:
+          Value: false
+        link_wrist_pitch:
+          Value: false
+        link_wrist_roll:
+          Value: false
+        link_wrist_yaw:
+          Value: false
+        link_wrist_yaw_bottom:
+          Value: false
+        map:
+          Value: true
+        odom:
+          Value: true
+        optitrack_table:
+          Value: false
+        original_stretch_head:
+          Value: true
+        respeaker_base:
+          Value: false
+        stretch_head:
+          Value: true
+        world:
+          Value: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          optitrack_table:
+            aruco_table:
+              {}
+          original_stretch_head:
+            map:
+              odom:
+                base_link:
+                  caster_link:
+                    {}
+                  centered_base_link:
+                    {}
+                  laser:
+                    {}
+                  link_aruco_left_base:
+                    {}
+                  link_aruco_right_base:
+                    {}
+                  link_left_wheel:
+                    {}
+                  link_mast:
+                    link_head:
+                      link_head_pan:
+                        link_head_tilt:
+                          camera_bottom_screw_frame:
+                            camera_link:
+                              camera_accel_frame:
+                                camera_accel_optical_frame:
+                                  {}
+                              camera_aligned_depth_to_color_frame:
+                                camera_color_optical_frame:
+                                  aruco_detected_table:
+                                    {}
+                              camera_color_frame:
+                                {}
+                              camera_depth_frame:
+                                camera_depth_optical_frame:
+                                  {}
+                              camera_gyro_frame:
+                                camera_gyro_optical_frame:
+                                  {}
+                              camera_infra1_frame:
+                                camera_infra1_optical_frame:
+                                  {}
+                              camera_infra2_frame:
+                                camera_infra2_optical_frame:
+                                  {}
+                    link_lift:
+                      link_arm_l4:
+                        link_arm_l3:
+                          link_arm_l2:
+                            link_arm_l1:
+                              link_arm_l0:
+                                link_aruco_inner_wrist:
+                                  {}
+                                link_aruco_top_wrist:
+                                  {}
+                                link_wrist_yaw:
+                                  link_wrist_yaw_bottom:
+                                    link_wrist_pitch:
+                                      link_wrist_roll:
+                                        link_straight_gripper:
+                                          link_grasp_center:
+                                            {}
+                                          link_gripper_finger_left:
+                                            link_gripper_fingertip_left:
+                                              {}
+                                          link_gripper_finger_right:
+                                            link_gripper_fingertip_right:
+                                              {}
+                      link_aruco_shoulder:
+                        {}
+                    respeaker_base:
+                      {}
+                  link_right_wheel:
+                    {}
+          stretch_head:
+            {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -516,9 +737,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 1.454796314239502
       Target Frame: <Fixed Frame>
-      Yaw: 3.1481218338012695
+      Yaw: 3.188121795654297
     Saved: ~
 Window Geometry:
   Displays:
