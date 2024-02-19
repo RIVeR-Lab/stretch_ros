@@ -27,23 +27,42 @@ class ObjectTFNode():
         self.tf2_buffer = tf2_ros.Buffer()
         self.tf2_listener = tf2_ros.TransformListener(self.tf2_buffer)
         self.br = tf2_ros.TransformBroadcaster()
+        self.rospack = rospkg.RosPack()
+
+        self.object_list_yaml = rospy.get_param("~object_list_yaml", self.rospack.get_path('stretch_putaway') + '/config/object_locations.yaml')
 
         self.object_list = {}
-        self.initialize_object_list()
+        self.initialize_object_list(self.object_list_yaml)
         self.object_list_lock = RLock()
 
 
         while not rospy.is_shutdown():
             with self.object_list_lock:
-                for object_name, tf in self.object_list:
+                for object_name, tf in self.object_list.items():
                     tf.header.stamp = rospy.Time.now()
                     self.br.sendTransform(tf)
 
             
             self.rate.sleep()
     
-    def initialize_object_list(self):
-        pass
+    def initialize_object_list(self, object_list_yaml):
+        with open(object_list_yaml, 'r') as f:
+            object_list = yaml.safe_load(f)
+            # print(object_list)
+            print(len(object_list['objects'].items()))
+
+            for object_name, info in object_list['objects'].items():
+                print(object_name, info)
+                self.object_list[object_name] = TransformStamped()
+                self.object_list[object_name].header.frame_id = 'map'
+                self.object_list[object_name].child_frame_id = object_name
+                self.object_list[object_name].transform.translation.x = info['location'][0]
+                self.object_list[object_name].transform.translation.y = info['location'][1]
+                self.object_list[object_name].transform.translation.z = info['location'][2]
+                self.object_list[object_name].transform.rotation.x = info['orientation'][0]
+                self.object_list[object_name].transform.rotation.y = info['orientation'][1]
+                self.object_list[object_name].transform.rotation.z = info['orientation'][2]
+                self.object_list[object_name].transform.rotation.w = info['orientation'][3]
 
     def remove_object(self, object_name):
         with self.object_list_lock:

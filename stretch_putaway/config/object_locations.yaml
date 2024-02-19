@@ -1,0 +1,11 @@
+objects:
+  object_1:
+    location: [0.5, 2.0, 0.0]
+    orientation: [0.0, 0.0, 0.0, 1.0]
+    color: "red"
+    arm_length: 0.3
+  object_2:
+    location: [2.0, 0.0, 0.0]
+    orientation: [0.0, 0.0, 0.0, 1.0]
+    color: "blue"
+    arm_length: 0.3
