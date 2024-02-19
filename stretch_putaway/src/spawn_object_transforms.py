@@ -18,7 +18,7 @@ from copy import deepcopy
 import stretch_body.robot as rb
 from std_srvs.srv import Empty, Trigger
 from threading import Lock, RLock
-
+from stretch_putaway.srv import ObjectRemove
     
 class ObjectTFNode():
     def __init__(self):
@@ -28,6 +28,7 @@ class ObjectTFNode():
         self.tf2_listener = tf2_ros.TransformListener(self.tf2_buffer)
         self.br = tf2_ros.TransformBroadcaster()
         self.rospack = rospkg.RosPack()
+        self.remove_object_service = rospy.Service('remove_object', ObjectRemove, self.remove_object)
 
         self.object_list_yaml = rospy.get_param("~object_list_yaml", self.rospack.get_path('stretch_putaway') + '/config/object_locations.yaml')
 
@@ -59,14 +60,24 @@ class ObjectTFNode():
                 self.object_list[object_name].transform.translation.x = info['location'][0]
                 self.object_list[object_name].transform.translation.y = info['location'][1]
                 self.object_list[object_name].transform.translation.z = info['location'][2]
-                self.object_list[object_name].transform.rotation.x = info['orientation'][0]
-                self.object_list[object_name].transform.rotation.y = info['orientation'][1]
-                self.object_list[object_name].transform.rotation.z = info['orientation'][2]
-                self.object_list[object_name].transform.rotation.w = info['orientation'][3]
+                
+                object_quat = tft.quaternion_from_euler(0.0, 0.0, info['orientation_z'])
+                self.object_list[object_name].transform.rotation.x = object_quat[0]
+                self.object_list[object_name].transform.rotation.y = object_quat[1]
+                self.object_list[object_name].transform.rotation.z = object_quat[2]
+                self.object_list[object_name].transform.rotation.w = object_quat[3]
 
-    def remove_object(self, object_name):
-        with self.object_list_lock:
-            self.object_list.pop(object_name)
+
+    def remove_object(self, srv):
+        try:
+            object_name = srv.object_name
+            with self.object_list_lock:
+                self.object_list.pop(object_name)
+            return True
+        except:
+            rospy.ERROR("Failed to remove object " + object_name)
+            return False
+
         
 
     
