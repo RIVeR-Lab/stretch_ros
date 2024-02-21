@@ -1,0 +1,79 @@
+<launch>
+  <arg name="static_map" default="true"/>
+
+  <!-- If using mapping and localization instead of SLAM, need to load the map. Following is the map location -->
+  <arg name="map_yaml" default="${HELLO_FLEET_PATH}/maps/stretch_taped_workspace.yaml" doc="filepath to previously captured map (required)" />
+
+  <!-- ROS visualizer -->
+  <arg name="rviz"                   default="true"                      doc="whether to show Rviz" />
+
+  <!-- STRETCH DRIVER -->
+  <param name="/stretch_driver/broadcast_odom_tf" type="bool" value="true"/>
+  <param name="/stretch_driver/mode" type="string" value="navigation" />
+  <include file="$(find stretch_core)/launch/stretch_driver.launch" pass_all_args="true"/>
+  <!-- <include file="$(find vz_ros_wrappers)/launch/lidar.launch"/> -->
+  <include file="$(find stretch_core)/launch/rplidar.launch" />
+
+  <!-- CENTERED BASE LINK -->
+  <node name="centered_base_link_tf_publisher" pkg="tf" type="static_transform_publisher" args="-0.1 0 0 0 0 0 1 /base_link /centered_base_link 100" />
+    
+  <!-- OPTION1 MAPPING AND LOCALIZATION INDEPENDENT -->
+  <!-- MAP SERVER -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_yaml)" if="$(arg static_map)"/>
+
+  <!-- LOCALIZATION -->
+  <include file="$(find amcl)/examples/amcl_diff.launch" if="$(arg static_map)"/>
+
+  <!-- OPTION2 SIMULTANEOUS LOCALIZATION AND MAPPING -->
+  <!-- SLAM -->
+  <node pkg="gmapping" type="slam_gmapping" name="gmapping_record_map" output="log" unless="$(arg static_map)"/>
+
+  <!-- NAVIGATION -->
+
+  <!-- Human State Estimation running behind the scenes -->
+  <!-- Takes care of generating set point i.e. person of interest -->
+
+
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base">
+    <!-- General & global path planning configuration -->
+    <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+    <rosparam file="$(find stretch_navigation)/config/vz_config/planner_params.yaml" command="load"/>
+    <rosparam file="$(find stretch_navigation)/config/vz_config/global_planner_params.yaml" command="load"/>
+
+    <!-- Local path planning configuration -->
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS"/> 
+    <rosparam file="$(find stretch_navigation)/config/vz_config/teb_local_planner_params.yaml" command="load"/> 
+
+    <!-- Common costmap parameters -->
+    <rosparam file="$(find stretch_navigation)/config/vz_config/common_costmap_params.yaml" command="load" ns="global_costmap" /> 
+    <rosparam file="$(find stretch_navigation)/config/vz_config/common_costmap_params.yaml" command="load" ns="local_costmap" /> 
+
+    <!-- Local & global costmap setup -->
+    <rosparam file="$(find stretch_navigation)/config/vz_config/local_costmap_params.yaml" command="load" /> 
+    <rosparam file="$(find stretch_navigation)/config/vz_config/global_costmap_params_withmap.yaml" command="load" if="$(arg static_map)" /> 
+    <rosparam file="$(find stretch_navigation)/config/vz_config/global_costmap_params_nomap.yaml" command="load" unless="$(arg static_map)" /> 
+
+    <!-- <remap from="/move_base_simple/goal" to="/waypoint"/> -->
+    <remap from="/cmd_vel" to="/stretch/cmd_vel" /> 
+  </node>
+
+
+  <!-- WAYPOINT SETTER -->
+  <!-- <node name="nav_goal_setter" pkg="vz_stretch_navigation" type="nav_goal_setter.py" output="screen">
+    <param name="radius" value="1.0"/> 
+    <param name="num_circ_samples" value="32"/> -->
+
+    <!-- <remap from="/odom" to="/odom" /> -->
+    <!-- <remap from="/poi_pose_stamped" to="/move_base_simple/goal"/> -->
+    <!-- <remap from="/local_costmap/costmap" to="/move_base/local_costmap/costmap"/> -->
+  <!-- </node> -->
+
+  <!-- Ability to change tilt and yaw of camera -->
+  <!-- Params for controlling the camera angle-->
+  <!-- <param name="nav_goal_pan_angle" type="int" value="0" />
+  <param name="nav_goal_tilt_angle" type="int" value="0" />
+  <node pkg="vz_stretch_navigation" type="nav_angle_controller.py" name="nav_goal_controller"/> -->
+
+  <!-- VISUALIZE -->
+  <node name="rviz" pkg="rviz" type="rviz" output="log" args="-d $(find stretch_navigation)/rviz/navigation.rviz" if="$(arg rviz)" />
+</launch>

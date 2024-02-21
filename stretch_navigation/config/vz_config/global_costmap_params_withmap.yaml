@@ -1,0 +1,13 @@
+global_costmap:
+  global_frame: map
+
+  rolling_window: false
+  track_unknown_space:  true    # True needed for disabling global path planning through unknown space
+
+  update_frequency: 5.0     # Map update frequency
+  publish_frequency: 2.0    # Publish frequency
+
+  plugins:
+    - {name: static_layer,            type: "costmap_2d::StaticLayer"}
+    - {name: obstacles_layer,          type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer,         type: "costmap_2d::InflationLayer"}

@@ -1,0 +1,32 @@
+robot_base_frame: base_link
+
+transform_tolerance: 0.3  # Tolerable delay in transforms, s
+
+# Update map with information about obstacles that are within m distance of the base
+obstacle_range: 2.5
+# Attempt to clear out space in front of base
+raytrace_range: 3
+  
+robot_radius: 0.2 # robot is square ~13.5*13.5 inchfootprint. This 0.2 is a circle with the same area
+
+obstacles_layer:
+    # Sensor management 
+    observation_sources:  scan
+    scan:
+        expected_update_rate: 0.15
+        observation_persistence: 0.0 # How long to keep each sensor reading (in seconds), 0.0 only keeps most recent
+        data_type: LaserScan
+        topic: scan_filtered
+        marking: true
+        clearing: true
+        inf_is_valid: true # Converts inf readings from scanner into max range
+        max_obstacle_height: 1.0
+        min_obstacle_height: -0.1
+
+inflation_layer:
+    inflation_radius: 0.22    # Max. distance from an obstacle at which costs are incurred for planning paths
+    cost_scaling_factor: 10   # Exponential rate at which the obstacle cost drops off (default: 10) - Lower makes robot stay further from obstacles
+
+static_layer:
+    map_topic: map
+    subscribe_to_updates: true
