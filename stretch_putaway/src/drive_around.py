@@ -46,14 +46,14 @@ class PutAwayNode(HelloNode):
 
 
         self.robot = rb.Robot()
-        left_table_pose = Pose()
-        left_table_pose.position.x = 0.75
-        left_table_pose.position.y = 2
-        left_table_pose.orientation.w = 1
-        arm_length_diff = self.move_base(left_table_pose)
-        print("Arm length diff", arm_length_diff)
-        # self.look_to_side()
-        self.grasp_object(arm_length = 0.4 +arm_length_diff)
+        # left_table_pose = Pose()
+        # left_table_pose.position.x = 0.75
+        # left_table_pose.position.y = 2
+        # left_table_pose.orientation.w = 1
+        # arm_length_diff = self.move_base(left_table_pose)
+        # print("Arm length diff", arm_length_diff)
+        self.look_at('link_aruco_top_wrist')
+        # self.grasp_object(arm_length = 0.4 + (arm_length_diff)/10)
 
         # self.circle_table()
 
@@ -104,23 +104,24 @@ class PutAwayNode(HelloNode):
         # Return Y offset to account for arm length difference
         return goal_pose_stretch_opti_frame.pose.position.y
 
-    def circle_table(self):
-        table_poses = [None] * 2
-        table_poses[0] = Pose()
-        table_poses[0].position.x = 2
-        table_poses[0].orientation.w = 1
-        table_poses[1] = Pose()
-        table_poses[1].position.x = -1
-        table_poses[1].position.y = 2
-        table_poses[1].orientation.w = 1
-        for pose in table_poses:
-            print('moving to pose', pose)
-            self.move_base(pose)
+
 
     def look_to_side(self):
         HelloNode.move_to_pose(self, {'joint_head_pan': -1.5,
                                       'joint_head_tilt': -0.4})
+        
+    # Move the camera to look at a specific frame
+    def look_at(self, look_at_frame_name='map'):
+        
+        look_at_tf = HelloNode.get_tf(self, 'link_head', look_at_frame_name).transform
+        yaw = math.atan2(look_at_tf.translation.x, look_at_tf.translation.y)
+        pitch = math.atan2(look_at_tf.translation.y, look_at_tf.translation.z)
+        print("Look at rotations", yaw, pitch)
+        HelloNode.move_to_pose(self, {'joint_head_pan': -yaw,
+                                      'joint_head_tilt': 1.57-pitch})
 
+
+    # Reach arm to pre-defined height and wrist positions. Arm length is determined based on robot position
     def grasp_object(self, arm_length=0.4):
         HelloNode.move_to_pose(self, {'joint_wrist_roll': 0.0,
                                       'joint_lift': 1.05})
@@ -130,16 +131,14 @@ class PutAwayNode(HelloNode):
                                       'joint_wrist_yaw': 0.0,
                                       'joint_wrist_pitch' : -0.5})
         
-        # HelloNode.move_to_pose(self, {'joint_wrist_pitch': -0.5})
 
         # Close the gripper and wait for grasp
         HelloNode.move_to_pose(self, {'joint_gripper_finger_left' : -0.25})
         rospy.sleep(5)
         self.high_stow()
-        # HelloNode.move_to_pose(self, {'joint_wrist_pitch': 0})
-        # HelloNode.move_to_pose(self, {'joint_arm' : 0,
-        #                               'joint_wrist_yaw': 3.0})
 
+
+    # Stow position, but higher for faster task completion
     def high_stow(self):
         HelloNode.move_to_pose(self, {'joint_wrist_pitch': 0})
         HelloNode.move_to_pose(self, {'joint_arm' : 0,

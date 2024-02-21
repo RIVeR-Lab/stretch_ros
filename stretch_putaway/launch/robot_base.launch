@@ -4,7 +4,7 @@
                doc="filepath to previously captured map (required)" />
     <arg name="rviz"     default="true" doc="whether to show Rviz" />
     
-    <include file="$(find stretch_navigation)/launch/navigation.launch" pass_all_args="true" />
+    <include file="$(find stretch_navigation)/launch/vz_navigation.launch" pass_all_args="true" />
 
     <!-- STRECH CAMERA ARUCO DRIVERS -->
     <include file="$(find stretch_core)/launch/d435i_high_resolution.launch" />
@@ -19,11 +19,12 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_original_stretch_head" output="screen"
                 args="0 0 -1.448 0 0 0 1 original_stretch_head map"/>
 
-    <node pkg="stretch_putaway" type="localize_odom" name="localize_odom" output="screen" />
+    <!-- <node pkg="stretch_putaway" type="localize_odom" name="localize_odom" output="screen" /> -->
 
     <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="aruco_marker_to_detected_marker" output="screen" 
             args="0 0 0 0 0.0 0 1 aruco_table aruco_detected_table"/> -->
 
     <!-- STRETCH PUTAWAY NODE-->
+    <node pkg="stretch_putaway" type="spawn_object_transforms.py" name="spawn_object_transforms" output="screen" />
     
 </launch>

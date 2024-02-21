@@ -33,6 +33,7 @@ class ObjectTFNode():
         self.object_list_yaml = rospy.get_param("~object_list_yaml", self.rospack.get_path('stretch_putaway') + '/config/object_locations.yaml')
 
         self.object_list = {}
+        self.dropoff_list = {}
         self.initialize_object_list(self.object_list_yaml)
         self.object_list_lock = RLock()
 
@@ -42,6 +43,9 @@ class ObjectTFNode():
                 for object_name, tf in self.object_list.items():
                     tf.header.stamp = rospy.Time.now()
                     self.br.sendTransform(tf)
+            for color, tf in self.dropoff_list.items():
+                tf.header.stamp = rospy.Time.now()
+                self.br.sendTransform(tf)
 
             
             self.rate.sleep()
@@ -66,6 +70,21 @@ class ObjectTFNode():
                 self.object_list[object_name].transform.rotation.y = object_quat[1]
                 self.object_list[object_name].transform.rotation.z = object_quat[2]
                 self.object_list[object_name].transform.rotation.w = object_quat[3]
+
+            for color, info in object_list['dropoffs'].items():
+                self.dropoff_list[color] = TransformStamped()
+                self.dropoff_list[color].header.frame_id = 'map'
+                self.dropoff_list[color].child_frame_id = color
+                self.dropoff_list[color].transform.translation.x = info['location'][0]
+                self.dropoff_list[color].transform.translation.y = info['location'][1]
+                self.dropoff_list[color].transform.translation.z = info['location'][2]
+                
+                dropoff_quat = tft.quaternion_from_euler(0.0, 0.0, info['orientation_z'])
+                self.dropoff_list[color].transform.rotation.x = dropoff_quat[0]
+                self.dropoff_list[color].transform.rotation.y = dropoff_quat[1]
+                self.dropoff_list[color].transform.rotation.z = dropoff_quat[2]
+                self.dropoff_list[color].transform.rotation.w = dropoff_quat[3]
+
 
 
     def remove_object(self, srv):
