@@ -59,7 +59,7 @@ class ObjectTFNode():
             for object_name, info in object_list['objects'].items():
                 print(object_name, info)
                 self.object_list[object_name] = TransformStamped()
-                self.object_list[object_name].header.frame_id = 'map'
+                self.object_list[object_name].header.frame_id = 'world'
                 self.object_list[object_name].child_frame_id = object_name
                 self.object_list[object_name].transform.translation.x = info['location'][0]
                 self.object_list[object_name].transform.translation.y = info['location'][1]
@@ -73,7 +73,7 @@ class ObjectTFNode():
 
             for color, info in object_list['dropoffs'].items():
                 self.dropoff_list[color] = TransformStamped()
-                self.dropoff_list[color].header.frame_id = 'map'
+                self.dropoff_list[color].header.frame_id = 'world'
                 self.dropoff_list[color].child_frame_id = color
                 self.dropoff_list[color].transform.translation.x = info['location'][0]
                 self.dropoff_list[color].transform.translation.y = info['location'][1]
