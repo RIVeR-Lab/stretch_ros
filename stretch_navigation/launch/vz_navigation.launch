@@ -75,5 +75,5 @@
   <node pkg="vz_stretch_navigation" type="nav_angle_controller.py" name="nav_goal_controller"/> -->
 
   <!-- VISUALIZE -->
-  <node name="rviz" pkg="rviz" type="rviz" output="log" args="-d $(find stretch_navigation)/rviz/navigation.rviz" if="$(arg rviz)" />
+  <node name="rviz" pkg="rviz" type="rviz" output="log" args="-d $(find stretch_navigation)/rviz/navigation_putaway.rviz" if="$(arg rviz)" />
 </launch>
