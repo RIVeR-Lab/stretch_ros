@@ -34,6 +34,7 @@ class ObjectTFNode():
 
         self.object_list = {}
         self.dropoff_list = {}
+        self.zone_list = {}
         self.initialize_object_list(self.object_list_yaml)
         self.object_list_lock = RLock()
 
@@ -46,6 +47,9 @@ class ObjectTFNode():
             for color, tf in self.dropoff_list.items():
                 tf.header.stamp = rospy.Time.now()
                 self.br.sendTransform(tf)
+            for zone, tf in self.zone_list.items():
+                tf.header.stamp = rospy.Time.now()
+                self.br.sendTransform(tf)
 
             
             self.rate.sleep()
@@ -54,36 +58,26 @@ class ObjectTFNode():
         with open(object_list_yaml, 'r') as f:
             object_list = yaml.safe_load(f)
             # print(object_list)
+            self.frame_id = object_list['frame']
             print(len(object_list['objects'].items()))
+            self.load_item_list(object_list['objects'].items(), self.object_list)
+            self.load_item_list(object_list['dropoffs'].items(), self.dropoff_list)
+            self.load_item_list(object_list['zones'].items(), self.zone_list)
 
-            for object_name, info in object_list['objects'].items():
-                print(object_name, info)
-                self.object_list[object_name] = TransformStamped()
-                self.object_list[object_name].header.frame_id = 'world'
-                self.object_list[object_name].child_frame_id = object_name
-                self.object_list[object_name].transform.translation.x = info['location'][0]
-                self.object_list[object_name].transform.translation.y = info['location'][1]
-                self.object_list[object_name].transform.translation.z = info['location'][2]
-                
-                object_quat = tft.quaternion_from_euler(0.0, 0.0, info['orientation_z'])
-                self.object_list[object_name].transform.rotation.x = object_quat[0]
-                self.object_list[object_name].transform.rotation.y = object_quat[1]
-                self.object_list[object_name].transform.rotation.z = object_quat[2]
-                self.object_list[object_name].transform.rotation.w = object_quat[3]
-
-            for color, info in object_list['dropoffs'].items():
-                self.dropoff_list[color] = TransformStamped()
-                self.dropoff_list[color].header.frame_id = 'world'
-                self.dropoff_list[color].child_frame_id = color
-                self.dropoff_list[color].transform.translation.x = info['location'][0]
-                self.dropoff_list[color].transform.translation.y = info['location'][1]
-                self.dropoff_list[color].transform.translation.z = info['location'][2]
-                
-                dropoff_quat = tft.quaternion_from_euler(0.0, 0.0, info['orientation_z'])
-                self.dropoff_list[color].transform.rotation.x = dropoff_quat[0]
-                self.dropoff_list[color].transform.rotation.y = dropoff_quat[1]
-                self.dropoff_list[color].transform.rotation.z = dropoff_quat[2]
-                self.dropoff_list[color].transform.rotation.w = dropoff_quat[3]
+    def load_item_list(self, list, my_dict):
+        for name, info in list:
+            my_dict[name] = TransformStamped()
+            my_dict[name].header.frame_id = self.frame_id
+            my_dict[name].child_frame_id = name
+            my_dict[name].transform.translation.x = info['location'][0]
+            my_dict[name].transform.translation.y = info['location'][1]
+            my_dict[name].transform.translation.z = info['location'][2]
+            
+            object_quat = tft.quaternion_from_euler(0.0, 0.0, info['orientation_z'])
+            my_dict[name].transform.rotation.x = object_quat[0]
+            my_dict[name].transform.rotation.y = object_quat[1]
+            my_dict[name].transform.rotation.z = object_quat[2]
+            my_dict[name].transform.rotation.w = object_quat[3]
 
 
 

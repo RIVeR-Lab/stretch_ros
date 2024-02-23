@@ -1,3 +1,21 @@
+# All the locations are in the world frame
+frame: "world"
+
+zones:
+  zone_top_left:
+    location: [0.5, 1.0, 0.0]
+    orientation_z: 0.0
+  zone_bottom_left:
+    location: [-0.5, 1.0, 0.0]
+    orientation_z: 0.0
+  zone_top_right:
+    location: [0.5, -1.0, 0.0]
+    orientation_z: 3.14
+  zone_bottom_right:
+    location: [-0.5, -1.0, 0.0]
+    orientation_z: 3.14
+
+
 objects:
   object_1:
     location: [0.0, 1.0, 0.0]
