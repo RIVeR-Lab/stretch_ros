@@ -8,6 +8,7 @@ from actionlib_msgs.msg import GoalStatus
 from math import sqrt, pow
 from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from nav_msgs.srv import GetPlan
 from control_msgs.msg import FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectoryPoint
 import tf2_ros
@@ -23,6 +24,7 @@ from std_msgs.msg import String
 import math    
 from tf2_geometry_msgs import PoseStamped as TF2PoseStamped
 from stretch_putaway.srv import ObjectRemove
+import time
     
 class PutAwayNode(HelloNode):
     def __init__(self):
@@ -46,14 +48,15 @@ class PutAwayNode(HelloNode):
         self.object_info = {}
         self.initialize_object_list(self.object_list_yaml)
         self.remove_object_service = rospy.ServiceProxy('remove_object', ObjectRemove)
-
+        self.make_plan_service = rospy.ServiceProxy('move_base/make_plan', GetPlan)
 
         self.high_stow()
         rospy.sleep(2)
 
 
         self.robot = rb.Robot()
-        self.pickup_object('object_1')
+        # self.pickup_object('object_1')
+        self.get_closest_object()
 
         # self.circle_table()
 
@@ -151,6 +154,52 @@ class PutAwayNode(HelloNode):
         # Return Y offset to account for arm length difference. Taken with respect to the robot head
         # If y offset is positive, that means goal is to the left which means the robot is closer to the table
         return goal_pose_stretch_opti_frame.pose.position.y
+    
+    # Returns the name of the closest object to the robot in terms of path steps
+    def get_closest_object(self):
+        # First get the current robot position
+        rospy.loginfo("Getting robot position")
+        robot_base_tf = HelloNode.get_tf(self, 'map', 'base_link').transform
+        robot_base_pose = PoseStamped()
+        robot_base_pose.header.frame_id = 'map'
+        robot_base_pose.header.stamp = rospy.Time.now()
+        robot_base_pose.pose.position.x = robot_base_tf.translation.x
+        robot_base_pose.pose.position.y = robot_base_tf.translation.y
+        robot_base_pose.pose.position.z = robot_base_tf.translation.z
+        robot_base_pose.pose.orientation.x = robot_base_tf.rotation.x
+        robot_base_pose.pose.orientation.y = robot_base_tf.rotation.y
+        robot_base_pose.pose.orientation.z = robot_base_tf.rotation.z
+        robot_base_pose.pose.orientation.w = robot_base_tf.rotation.w
+
+        min_steps = 100000
+        closest_object_name = None
+        for object_name, info in self.object_info.items():
+            rospy.loginfo("Getting object position " + object_name)
+            object_base_tf = HelloNode.get_tf(self, 'map', object_name).transform
+            object_base_pose = PoseStamped()
+            object_base_pose.header.frame_id = 'map'
+            object_base_pose.header.stamp = rospy.Time.now()
+            object_base_pose.pose.position.x = object_base_tf.translation.x
+            object_base_pose.pose.position.y = object_base_tf.translation.y
+            object_base_pose.pose.position.z = object_base_tf.translation.z
+            object_base_pose.pose.orientation.x = object_base_tf.rotation.x
+            object_base_pose.pose.orientation.y = object_base_tf.rotation.y
+            object_base_pose.pose.orientation.z = object_base_tf.rotation.z
+            object_base_pose.pose.orientation.w = object_base_tf.rotation.w
+
+            object_start_time = time.time()
+
+            # Calculate plan to each object and take the shortest one
+            object_plan = self.make_plan_service(robot_base_pose, object_base_pose, 0.1)
+
+            end_time = time.time()
+            print("Time to get plan", end_time - object_start_time)
+            print("Object plan for object", object_name, len(object_plan.plan.poses))
+            if len(object_plan.plan.poses) < min_steps:
+                min_steps = len(object_plan.plan.poses)
+                closest_object_name = object_name
+        return closest_object_name
+
 
         
     # Move the camera to look at a specific frame
