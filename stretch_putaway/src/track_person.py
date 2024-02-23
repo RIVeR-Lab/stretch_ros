@@ -25,8 +25,8 @@ class PersonTracker(HelloNode):
         self.rospack = rospkg.RosPack()
         self.tracking_frame = rospy.get_param("~tracking_frame", "hololens_head")
         self.tracking = True
-        rospy.ServiceProxy('track_person', Trigger, self.track_person)
-        rospy.ServiceProxy('stop_tracking', Trigger, self.stop_tracking)
+        rospy.Service('track_person', Trigger, self.track_person)
+        rospy.Service('stop_tracking', Trigger, self.stop_tracking)
         
         self.tf2_buffer = tf2_ros.Buffer()
         self.tf2_listener = tf2_ros.TransformListener(self.tf2_buffer)
@@ -40,7 +40,7 @@ class PersonTracker(HelloNode):
         return []
 
     # Move the camera to look at a specific frame
-    def look_at(self, look_at_frame_name='pose_0'):
+    def look_at(self, look_at_frame_name='hololens_head'):
         print("Waiting for transform")
         look_at_tf = HelloNode.get_tf(self, 'static_camera_link', look_at_frame_name).transform
         yaw = math.atan2(look_at_tf.translation.x, look_at_tf.translation.y)
