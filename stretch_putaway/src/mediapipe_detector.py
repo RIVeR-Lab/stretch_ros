@@ -16,6 +16,42 @@ from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, TransformS
 from itertools import compress
 
 
+# Keypoint IDs from https://developers.google.com/mediapipe/solutions/vision/pose_landmarker
+# 0 - nose
+# 1 - left eye (inner)
+# 2 - left eye
+# 3 - left eye (outer)
+# 4 - right eye (inner)
+# 5 - right eye
+# 6 - right eye (outer)
+# 7 - left ear
+# 8 - right ear
+# 9 - mouth (left)
+# 10 - mouth (right)
+# 11 - left shoulder
+# 12 - right shoulder
+# 13 - left elbow
+# 14 - right elbow
+# 15 - left wrist
+# 16 - right wrist
+# 17 - left pinky
+# 18 - right pinky
+# 19 - left index
+# 20 - right index
+# 21 - left thumb
+# 22 - right thumb
+# 23 - left hip
+# 24 - right hip
+# 25 - left knee
+# 26 - right knee
+# 27 - left ankle
+# 28 - right ankle
+# 29 - left heel
+# 30 - right heel
+# 31 - left foot index
+# 32 - right foot index
+
+
 class MediapipeDetector:
     def __init__(self):
         rospy.init_node('mediapipe_detector')
@@ -29,6 +65,7 @@ class MediapipeDetector:
         self.bridge = CvBridge()
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
 
+        # Keypoint IDs to track
         self.keypoint_ids = [0, 11, 12, 13, 14, 15, 16, 23, 24]
         self.keypoint_mask = np.zeros(33, dtype=bool)
         self.keypoint_mask[self.keypoint_ids] = True
