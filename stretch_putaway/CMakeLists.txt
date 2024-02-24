@@ -60,6 +60,8 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   ObjectRemove.srv
+  ZonesWithObjects.srv
+  ObjectsInZone.srv
 #   Service2.srv
 )
 
