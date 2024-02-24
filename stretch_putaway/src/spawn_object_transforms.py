@@ -18,7 +18,7 @@ from copy import deepcopy
 import stretch_body.robot as rb
 from std_srvs.srv import Empty, Trigger
 from threading import Lock, RLock
-from stretch_putaway.srv import ObjectRemove
+from stretch_putaway.srv import ObjectRemove, ZonesWithObjects, ZonesWithObjectsResponse, ObjectsInZone, ObjectsInZoneResponse
     
 class ObjectTFNode():
     def __init__(self):
@@ -29,12 +29,16 @@ class ObjectTFNode():
         self.br = tf2_ros.TransformBroadcaster()
         self.rospack = rospkg.RosPack()
         self.remove_object_service = rospy.Service('remove_object', ObjectRemove, self.remove_object)
+        self.get_zones_with_objects_service = rospy.Service('get_zones_with_objects', ZonesWithObjects, self.get_zones_with_objects)
+        self.get_objects_in_zone_service = rospy.Service('get_objects_in_zone', ObjectsInZone, self.get_objects_in_zone)
 
         self.object_list_yaml = rospy.get_param("~object_list_yaml", self.rospack.get_path('stretch_putaway') + '/config/object_locations.yaml')
 
         self.object_list = {}
+        self.object_info_list = {}
         self.dropoff_list = {}
         self.zone_list = {}
+        self.zone_objects = {}
         self.initialize_object_list(self.object_list_yaml)
         self.object_list_lock = RLock()
 
@@ -64,6 +68,14 @@ class ObjectTFNode():
             self.load_item_list(object_list['dropoffs'].items(), self.dropoff_list)
             self.load_item_list(object_list['zones'].items(), self.zone_list)
 
+            for object_name, info in object_list['objects'].items():
+                self.object_info_list[object_name] = info
+                if info['zone'] not in self.zone_objects:
+                    self.zone_objects[info['zone']] = []
+                self.zone_objects[info['zone']].append(object_name)
+
+            
+
     def load_item_list(self, list, my_dict):
         for name, info in list:
             my_dict[name] = TransformStamped()
@@ -86,10 +98,25 @@ class ObjectTFNode():
             object_name = srv.object_name
             with self.object_list_lock:
                 self.object_list.pop(object_name)
+
+            object_zone = self.object_info_list[object_name]['zone']
+            self.zone_objects[object_zone].remove(object_name)
+
             return True
         except:
             rospy.ERROR("Failed to remove object " + object_name)
             return False
+
+    def get_zones_with_objects(self, srv):
+        zone_list = []
+        for zone, objects in self.zone_objects.items():
+            if len(objects) > 0:
+                zone_list.append(zone)
+        return ZonesWithObjectsResponse(zone_list)
+    
+    def get_objects_in_zone(self, srv):
+        zone = srv.zone
+        return ObjectsInZoneResponse(self.zone_objects[zone])
 
         
 

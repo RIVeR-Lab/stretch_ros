@@ -23,7 +23,7 @@ from std_srvs.srv import Trigger
 from std_msgs.msg import String
 import math    
 from tf2_geometry_msgs import PoseStamped as TF2PoseStamped
-from stretch_putaway.srv import ObjectRemove
+from stretch_putaway.srv import ObjectRemove, ZonesWithObjects, ObjectsInZone, ZonesWithObjectsResponse, ObjectsInZoneResponse
 import time
     
 class PutAwayNode(HelloNode):
@@ -48,6 +48,8 @@ class PutAwayNode(HelloNode):
         self.object_info = {}
         self.initialize_object_list(self.object_list_yaml)
         self.remove_object_service = rospy.ServiceProxy('remove_object', ObjectRemove)
+        self.get_zones_with_objects_service = rospy.ServiceProxy('get_zones_with_objects', ZonesWithObjects)
+        self.get_objects_in_zone_service = rospy.ServiceProxy('get_objects_in_zone', ObjectsInZone)
         self.make_plan_service = rospy.ServiceProxy('move_base/make_plan', GetPlan)
 
         self.high_stow()
@@ -160,45 +162,30 @@ class PutAwayNode(HelloNode):
         # First get the current robot position
         rospy.loginfo("Getting robot position")
         robot_base_tf = HelloNode.get_tf(self, 'map', 'base_link').transform
-        robot_base_pose = PoseStamped()
-        robot_base_pose.header.frame_id = 'map'
-        robot_base_pose.header.stamp = rospy.Time.now()
-        robot_base_pose.pose.position.x = robot_base_tf.translation.x
-        robot_base_pose.pose.position.y = robot_base_tf.translation.y
-        robot_base_pose.pose.position.z = robot_base_tf.translation.z
-        robot_base_pose.pose.orientation.x = robot_base_tf.rotation.x
-        robot_base_pose.pose.orientation.y = robot_base_tf.rotation.y
-        robot_base_pose.pose.orientation.z = robot_base_tf.rotation.z
-        robot_base_pose.pose.orientation.w = robot_base_tf.rotation.w
-
+        robot_base_pose = self.tf_to_posetamped(robot_base_tf, 'map')
+        zones_with_objects = self.get_zones_with_objects_service()
         min_steps = 100000
-        closest_object_name = None
-        for object_name, info in self.object_info.items():
-            rospy.loginfo("Getting object position " + object_name)
-            object_base_tf = HelloNode.get_tf(self, 'map', object_name).transform
-            object_base_pose = PoseStamped()
-            object_base_pose.header.frame_id = 'map'
-            object_base_pose.header.stamp = rospy.Time.now()
-            object_base_pose.pose.position.x = object_base_tf.translation.x
-            object_base_pose.pose.position.y = object_base_tf.translation.y
-            object_base_pose.pose.position.z = object_base_tf.translation.z
-            object_base_pose.pose.orientation.x = object_base_tf.rotation.x
-            object_base_pose.pose.orientation.y = object_base_tf.rotation.y
-            object_base_pose.pose.orientation.z = object_base_tf.rotation.z
-            object_base_pose.pose.orientation.w = object_base_tf.rotation.w
+        for zone in zones_with_objects.zones:
+            rospy.loginfo("Getting zone position " + zone)
+            zone_base_tf = HelloNode.get_tf(self, 'map', zone).transform
+            zone_base_pose = self.tf_to_posetamped(zone_base_tf, 'map')
 
-            object_start_time = time.time()
+            start_time = time.time()
 
             # Calculate plan to each object and take the shortest one
-            object_plan = self.make_plan_service(robot_base_pose, object_base_pose, 0.1)
+            zone_plan = self.make_plan_service(robot_base_pose, zone_base_pose, 0.1)
 
             end_time = time.time()
-            print("Time to get plan", end_time - object_start_time)
-            print("Object plan for object", object_name, len(object_plan.plan.poses))
-            if len(object_plan.plan.poses) < min_steps:
-                min_steps = len(object_plan.plan.poses)
-                closest_object_name = object_name
-        return closest_object_name
+            print("Time to get plan", end_time - start_time)
+            print("Object plan for object", zone, len(zone_plan.plan.poses))
+            if len(zone_plan.plan.poses) < min_steps:
+                min_steps = len(zone_plan.plan.poses)
+                closest_zone = zone
+
+        objects_in_zone = self.get_objects_in_zone_service(closest_zone)
+        print("Objects in zone", objects_in_zone.object_names)
+        return objects_in_zone.object_names[0]
+                
 
 
         
@@ -250,6 +237,19 @@ class PutAwayNode(HelloNode):
                                       'joint_lift': 1.0,
                                       'joint_wrist_yaw': 3.0,
                                       'joint_gripper_finger_left' : 0})
+        
+    def tf_to_posetamped(self, tf, frame_id):
+        pose = PoseStamped()
+        pose.header.frame_id = frame_id
+        pose.header.stamp = rospy.Time.now()
+        pose.pose.position.x = tf.translation.x
+        pose.pose.position.y = tf.translation.y
+        pose.pose.position.z = tf.translation.z
+        pose.pose.orientation.x = tf.rotation.x
+        pose.pose.orientation.y = tf.rotation.y
+        pose.pose.orientation.z = tf.rotation.z
+        pose.pose.orientation.w = tf.rotation.w
+        return pose
 
 
     
