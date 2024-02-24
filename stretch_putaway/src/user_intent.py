@@ -8,6 +8,8 @@ from actionlib_msgs.msg import GoalStatus
 from math import sqrt, pow
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, TransformStamped, PolygonStamped, Point32
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from sensor_msgs.msg import PointCloud
+import sensor_msgs
 import tf2_ros
 # from hello_helpers import HelloNode
 # from util import *
@@ -21,6 +23,8 @@ from threading import Lock, RLock
 from stretch_putaway.srv import ObjectRemove, ZonesWithObjects, ZonesWithObjectsResponse, ObjectsInZone, ObjectsInZoneResponse
 from costmap_converter.msg import ObstacleArrayMsg, ObstacleMsg
 from nav_msgs.srv import GetPlan
+from nav_msgs.msg import Path
+from visualization_msgs.msg import Marker, MarkerArray
 
 
 class UserModel():
@@ -32,24 +36,68 @@ class UserModel():
         self.br = tf2_ros.TransformBroadcaster()
         self.rospack = rospkg.RosPack()
 
-        self.user_frame = 'hololens_head'
+        self.user_frame = 'map'
 
         self.obstacle_pub = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
+        self.path_pub = rospy.Publisher('/user_path', PointCloud, queue_size=1)
         self.obstacle_msg = ObstacleArrayMsg()
         self.obstacle_msg.header.frame_id = 'map'
         self.make_plan_service = rospy.ServiceProxy('/move_base/make_plan', GetPlan)
+        rospy.sleep(2)
+
+        while not rospy.is_shutdown():
+            self.get_user_path('red')
 
     def get_user_path(self, target_name):
-        user_tf = self.tf2_buffer.lookup_transform('map', self.user_frame, rospy.Time.now())
+        user_tf = self.tf2_buffer.lookup_transform('map', self.user_frame, rospy.Time()).transform
         user_pose = self.tf_to_posetamped(user_tf, 'map')
 
-        target_tf = self.tf2_buffer.lookup_transform('map', target_name, rospy.Time.now())
+        target_tf = self.tf2_buffer.lookup_transform('map', target_name, rospy.Time()).transform
         target_pose = self.tf_to_posetamped(target_tf, 'map')
 
+        self.obstacle_msg = ObstacleArrayMsg()
+        self.obstacle_msg.header.frame_id = 'map'
         user_path = self.make_plan_service(user_pose, target_pose, 0.1)
         user_path_points = user_path.plan.poses
 
+
+        if len(user_path_points) <= 1:
+            rospy.loginfo('No path found')
+            return
         
+
+        # Create a PointCloud message
+        point_cloud = PointCloud()
+        point_cloud.header.frame_id = 'map'
+
+        for i in range(len(user_path_points)):
+            point = Point32()
+            point.x = user_path_points[i].pose.position.x
+            point.y = user_path_points[i].pose.position.y
+            point.z = user_path_points[i].pose.position.z
+            point_cloud.points.append(point)
+
+        # Publish the point cloud
+        self.path_pub.publish(point_cloud)
+
+        
+        # for i in range(len(user_path_points) - 1):
+        #     start_point = user_path_points[i].pose.position
+        #     end_point = user_path_points[i+1].pose.position
+        #     self.obstacle_msg.obstacles.append(ObstacleMsg())
+        #     self.obstacle_msg.obstacles[i].id = 0
+        #     line_start = Point32()
+        #     line_start.x = start_point.x
+        #     line_start.y = start_point.y
+        #     line_end = Point32()
+        #     line_end.x = end_point.x
+        #     line_end.y = end_point.y
+        #     self.obstacle_msg.obstacles[i].polygon.points = [line_start, line_end]
+        # self.obstacle_pub.publish(self.obstacle_msg)
+
+
+
+        map
 
 
     def tf_to_posetamped(self, tf, frame_id):
@@ -66,4 +114,6 @@ class UserModel():
         return pose
 
 
-    
+if __name__ == "__main__":
+    user_model = UserModel()
+    rospy.spin()

@@ -171,6 +171,7 @@ catkin_install_python(PROGRAMS
   src/spawn_object_transforms.py
   src/mediapipe_detector.py
   src/track_person.py
+  src/user_intent.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
