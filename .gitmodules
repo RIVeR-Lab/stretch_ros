@@ -1,3 +1,6 @@
 [submodule "natnet_ros_cpp"]
 	path = natnet_ros_cpp
 	url = https://github.com/L2S-lab/natnet_ros_cpp.git
+[submodule "spatio_temporal_voxel_layer"]
+	path = spatio_temporal_voxel_layer
+	url = https://github.com/SteveMacenski/spatio_temporal_voxel_layer.git

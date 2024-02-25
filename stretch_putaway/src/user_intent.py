@@ -86,6 +86,7 @@ class UserModel():
         point_cloud2_msg = point_cloud2.create_cloud_xyz32(point_cloud.header, p)
     
         # Publish the point cloud
+        # self.clear_costmap_service()
         self.path_pub.publish(point_cloud2_msg)
 
         
