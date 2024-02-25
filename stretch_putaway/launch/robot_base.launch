@@ -5,6 +5,7 @@
     <arg name="rviz"     default="true" doc="whether to show Rviz" />
     
     <include file="$(find stretch_navigation)/launch/vz_navigation.launch" pass_all_args="true" />
+    <include file="$(find stretch_navigation)/launch/user_navigation.launch" />
 
     <!-- STRECH CAMERA ARUCO DRIVERS -->
     <include file="$(find stretch_core)/launch/d435i_high_resolution.launch" />

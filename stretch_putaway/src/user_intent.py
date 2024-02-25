@@ -8,7 +8,8 @@ from actionlib_msgs.msg import GoalStatus
 from math import sqrt, pow
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, TransformStamped, PolygonStamped, Point32
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-from sensor_msgs.msg import PointCloud
+from sensor_msgs.msg import PointCloud, PointCloud2
+from sensor_msgs import point_cloud2
 import sensor_msgs
 import tf2_ros
 # from hello_helpers import HelloNode
@@ -39,10 +40,10 @@ class UserModel():
         self.user_frame = 'base_link'
 
         self.obstacle_pub = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
-        self.path_pub = rospy.Publisher('/user_path', PointCloud, queue_size=1)
+        self.path_pub = rospy.Publisher('/user_path', PointCloud2, queue_size=1)
         self.obstacle_msg = ObstacleArrayMsg()
         self.obstacle_msg.header.frame_id = 'map'
-        self.make_plan_service = rospy.ServiceProxy('/user_move_base/make_plan', GetPlan)
+        self.make_plan_service = rospy.ServiceProxy('/user/user_move_base/make_plan', GetPlan)
         self.clear_costmap_service = rospy.ServiceProxy('/move_base/clear_costmaps', Empty)
         rospy.sleep(2)
 
@@ -67,23 +68,25 @@ class UserModel():
         if len(user_path_points) <= 1:
             rospy.loginfo('No path found')
             return
-        
 
         # Create a PointCloud message
         point_cloud = PointCloud()
         point_cloud.header.frame_id = 'map'
         point_cloud.header.stamp = rospy.Time.now()
         point_cloud.points = []
-
+        p = []
         for i in range(len(user_path_points)):
             point = Point32()
             point.x = user_path_points[i].pose.position.x
             point.y = user_path_points[i].pose.position.y
             point.z = user_path_points[i].pose.position.z
             point_cloud.points.append(point)
+            p.append([point.x, point.y, point.z])
 
+        point_cloud2_msg = point_cloud2.create_cloud_xyz32(point_cloud.header, p)
+    
         # Publish the point cloud
-        self.path_pub.publish(point_cloud)
+        self.path_pub.publish(point_cloud2_msg)
 
         
         # for i in range(len(user_path_points) - 1):
