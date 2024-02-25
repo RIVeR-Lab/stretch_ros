@@ -9,6 +9,7 @@ from math import sqrt, pow
 from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from nav_msgs.srv import GetPlan
+from nav_msgs.msg import OccupancyGrid
 from control_msgs.msg import FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectoryPoint
 import tf2_ros
@@ -50,7 +51,7 @@ class PutAwayNode(HelloNode):
         self.remove_object_service = rospy.ServiceProxy('remove_object', ObjectRemove)
         self.get_zones_with_objects_service = rospy.ServiceProxy('get_zones_with_objects', ZonesWithObjects)
         self.get_objects_in_zone_service = rospy.ServiceProxy('get_objects_in_zone', ObjectsInZone)
-        self.make_plan_service = rospy.ServiceProxy('move_base/make_plan', GetPlan)
+        self.make_plan_service = rospy.ServiceProxy('move_base/GlobalPlanner/make_plan', GetPlan)
 
         self.high_stow()
         rospy.sleep(2)
@@ -165,10 +166,25 @@ class PutAwayNode(HelloNode):
         robot_base_pose = self.tf_to_posetamped(robot_base_tf, 'map')
         zones_with_objects = self.get_zones_with_objects_service()
         min_steps = 100000
+        global_costmap = rospy.wait_for_message('/move_base/global_costmap/costmap', OccupancyGrid)
+        closest_zone = None
+        print("Costmap", global_costmap.info)
+        print("Costmap data", len(global_costmap.data))
         for zone in zones_with_objects.zones:
             rospy.loginfo("Getting zone position " + zone)
             zone_base_tf = HelloNode.get_tf(self, 'map', zone).transform
             zone_base_pose = self.tf_to_posetamped(zone_base_tf, 'map')
+
+            # Check if goal pose is occupied
+            goal_x = zone_base_tf.translation.x + 0.2
+            goal_y = zone_base_tf.translation.y
+            goal_index = int((goal_y - global_costmap.info.origin.position.y) / global_costmap.info.resolution) * global_costmap.info.width \
+                        + int((goal_x - global_costmap.info.origin.position.x) / global_costmap.info.resolution)
+            print("Goal index", goal_index)
+            print(global_costmap.data[goal_index])
+            if global_costmap.data[goal_index] > 0:
+                print("zone is occupied, continuing")
+                continue
 
             start_time = time.time()
 
@@ -181,6 +197,10 @@ class PutAwayNode(HelloNode):
             if len(zone_plan.plan.poses) < min_steps:
                 min_steps = len(zone_plan.plan.poses)
                 closest_zone = zone
+
+        if closest_zone is None:
+            rospy.loginfo("No objects found, will resort to greedy approach")
+            return None
 
         objects_in_zone = self.get_objects_in_zone_service(closest_zone)
         print("Objects in zone", objects_in_zone.object_names)

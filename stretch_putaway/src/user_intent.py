@@ -36,17 +36,20 @@ class UserModel():
         self.br = tf2_ros.TransformBroadcaster()
         self.rospack = rospkg.RosPack()
 
-        self.user_frame = 'map'
+        self.user_frame = 'base_link'
 
         self.obstacle_pub = rospy.Publisher('/move_base/TebLocalPlannerROS/obstacles', ObstacleArrayMsg, queue_size=1)
         self.path_pub = rospy.Publisher('/user_path', PointCloud, queue_size=1)
         self.obstacle_msg = ObstacleArrayMsg()
         self.obstacle_msg.header.frame_id = 'map'
-        self.make_plan_service = rospy.ServiceProxy('/move_base/make_plan', GetPlan)
+        self.make_plan_service = rospy.ServiceProxy('/user_move_base/make_plan', GetPlan)
+        self.clear_costmap_service = rospy.ServiceProxy('/move_base/clear_costmaps', Empty)
         rospy.sleep(2)
 
         while not rospy.is_shutdown():
-            self.get_user_path('red')
+            self.get_user_path('zone_top_left')
+            # self.clear_costmap_service()
+            self.rate.sleep()
 
     def get_user_path(self, target_name):
         user_tf = self.tf2_buffer.lookup_transform('map', self.user_frame, rospy.Time()).transform
@@ -69,6 +72,8 @@ class UserModel():
         # Create a PointCloud message
         point_cloud = PointCloud()
         point_cloud.header.frame_id = 'map'
+        point_cloud.header.stamp = rospy.Time.now()
+        point_cloud.points = []
 
         for i in range(len(user_path_points)):
             point = Point32()

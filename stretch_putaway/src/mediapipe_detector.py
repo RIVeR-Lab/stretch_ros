@@ -56,7 +56,7 @@ class MediapipeDetector:
     def __init__(self):
         rospy.init_node('mediapipe_detector')
         self.rospack = rospkg.RosPack()
-        base_options = python.BaseOptions(model_asset_path=self.rospack.get_path('stretch_putaway') + '/config/pose_landmarker_lite.task')
+        base_options = python.BaseOptions(model_asset_path=self.rospack.get_path('stretch_putaway') + '/config/pose_landmarker_full.task')
         options = vision.PoseLandmarkerOptions(
             base_options=base_options,
             output_segmentation_masks=True
@@ -105,10 +105,10 @@ class MediapipeDetector:
         if results.pose_world_landmarks:
             self.publish_joint_tfs(results.pose_world_landmarks[0])
 
-        # annotated_image = self.draw_landmarks_on_image(mp_image.numpy_view(), results)
+        annotated_image = self.draw_landmarks_on_image(mp_image.numpy_view(), results)
  
-        # cv2.imshow('color_image', annotated_image)
-        # cv2.waitKey(1)
+        cv2.imshow('color_image', annotated_image)
+        cv2.waitKey(1)
 
     def publish_joint_tfs(self, world_landmarks):
         for i, pose_landmarks in enumerate(world_landmarks):
