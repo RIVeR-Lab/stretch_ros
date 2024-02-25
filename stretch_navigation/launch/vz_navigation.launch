@@ -58,17 +58,6 @@
   </node>
 
 
-  <!-- USER NAVIGATION -->
-  <node pkg="move_base" type="move_base" respawn="false" name="user_move_base" output="screen">
-    <rosparam file="$(find stretch_navigation)/config/common_costmap_params.yaml" command="load" ns="user_global_costmap" />
-    <rosparam file="$(find stretch_navigation)/config/common_costmap_params.yaml" command="load" ns="user_local_costmap" />
-    <rosparam file="$(find stretch_navigation)/config/local_costmap_params.yaml" command="load" />
-    <rosparam file="$(find stretch_navigation)/config/global_costmap_params_withmap.yaml" command="load" />
-    <rosparam file="$(find stretch_navigation)/config/base_local_planner_params.yaml" command="load" />
-
-    <remap from="/cmd_vel" to="/user/cmd_vel" />
-  </node>
-
 
   <!-- WAYPOINT SETTER -->
   <!-- <node name="nav_goal_setter" pkg="vz_stretch_navigation" type="nav_goal_setter.py" output="screen">

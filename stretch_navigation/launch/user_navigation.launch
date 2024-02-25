@@ -1,0 +1,23 @@
+<launch>
+  
+    <group ns="user">
+        <arg name="static_map" default="true"/>
+
+        <!-- If using mapping and localization instead of SLAM, need to load the map. Following is the map location -->
+        <arg name="map_yaml" default="/home/hello-robot/stretch_user/maps/stretch_taped_workspace.yaml" doc="filepath to previously captured map (required)" />
+        <node name="user_map_server" pkg="map_server" type="map_server" args="$(arg map_yaml)" if="$(arg static_map)"/>
+
+        <!-- NAVIGATION -->
+        <node pkg="move_base" type="move_base" respawn="false" name="user_move_base" output="screen" >
+            <rosparam file="$(find stretch_navigation)/config/user_config/common_costmap_params.yaml" command="load" />
+            <rosparam file="$(find stretch_navigation)/config/user_config/common_costmap_params.yaml" command="load" />
+            <rosparam file="$(find stretch_navigation)/config/user_config/local_costmap_params.yaml" command="load" />
+            <rosparam file="$(find stretch_navigation)/config/user_config/global_costmap_params_withmap.yaml" command="load" />
+            <rosparam file="$(find stretch_navigation)/config/user_config/base_local_planner_params.yaml" command="load" />
+
+            <remap from="/cmd_vel" to="/user/cmd_vel" />
+        </node>
+
+    </group>
+
+</launch>

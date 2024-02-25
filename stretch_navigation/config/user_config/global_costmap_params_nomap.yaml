@@ -1,0 +1,7 @@
+global_costmap:
+  global_frame: map
+  robot_base_frame: hololens_head
+  update_frequency: 5.0
+  static_map: false
+  inflation_radius: 1.75
+  cost_scaling_factor: 2.58

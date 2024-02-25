@@ -10,4 +10,5 @@ global_costmap:
   plugins:
     - {name: static_layer,            type: "costmap_2d::StaticLayer"}
     - {name: obstacles_layer,          type: "costmap_2d::ObstacleLayer"}
+    - {name: user_path_layer,          type: "costmap_2d::ObstacleLayer"}
     - {name: inflation_layer,         type: "costmap_2d::InflationLayer"}
