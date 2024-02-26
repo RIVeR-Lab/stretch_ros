@@ -23,7 +23,8 @@ class PersonTracker(HelloNode):
         HelloNode.__init__(self)
         HelloNode.main(self, 'person_tracker', 'person_tracker', wait_for_first_pointcloud=False)
         self.rospack = rospkg.RosPack()
-        self.tracking_frame = rospy.get_param("~tracking_frame", "hololens_head")
+        self.tracking_frame = rospy.get_param("~tracking_frame", "hololens_data/pose")
+        self.tracking_frame = "center_table"
         self.tracking = True
         rospy.Service('track_person', Trigger, self.track_person)
         rospy.Service('stop_tracking', Trigger, self.stop_tracking)
@@ -44,13 +45,14 @@ class PersonTracker(HelloNode):
         print("Waiting for transform")
         look_at_tf = HelloNode.get_tf(self, 'static_camera_link', look_at_frame_name).transform
         yaw = math.atan2(look_at_tf.translation.x, look_at_tf.translation.y)
-        pitch = math.atan2(look_at_tf.translation.y, look_at_tf.translation.z)
+        pitch = math.atan2(math.hypot(look_at_tf.translation.x, look_at_tf.translation.y)
+                           , look_at_tf.translation.z)
 
         yaw = -yaw
         pitch = 1.57 - pitch
         print("Look at rotations", yaw, pitch)
 
-        if yaw < -3.14 or yaw > 1.57:
+        if yaw < -3.54 or yaw > 1.67:
             # Yaw is out of range, don't move the head
             print("Yaw out of range")
             return
