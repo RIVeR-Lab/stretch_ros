@@ -34,10 +34,15 @@ class ObjectTFNode():
 
         self.object_list_yaml = rospy.get_param("~object_list_yaml", self.rospack.get_path('stretch_putaway') + '/config/object_locations.yaml')
 
+        # Object list is a dictionary of object names to their tfs
         self.object_list = {}
+        # Object info list is a dictionary of object names to their info
         self.object_info_list = {}
+        # Dropoff list is a dictionary of dropoff tfs to simplify path searching
         self.dropoff_list = {}
+        # Zone list is a dictionary of zone tfs to simplify path searching
         self.zone_list = {}
+        # Zone objects is a dictionary of objects in each zone to ensure each zone has at least one object
         self.zone_objects = {}
         self.initialize_object_list(self.object_list_yaml)
         self.object_list_lock = RLock()
@@ -90,6 +95,8 @@ class ObjectTFNode():
             my_dict[name].transform.rotation.y = object_quat[1]
             my_dict[name].transform.rotation.z = object_quat[2]
             my_dict[name].transform.rotation.w = object_quat[3]
+
+
 
 
 

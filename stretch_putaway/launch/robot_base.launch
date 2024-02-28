@@ -20,9 +20,11 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_original_stretch_head" output="screen"
                 args="0 0 -1.448 0 0 0 1 original_stretch_head map"/>
 
-        <node pkg="tf2_ros" type="static_transform_publisher" name="link_head_to_static_camera" output="screen"
-                args="0.14 0.1 -0.1 0 0 0 1 link_head static_camera_link"/>
+    <node pkg="tf2_ros" type="static_transform_publisher" name="link_head_to_static_camera" output="screen"
+            args="0.14 0.1 -0.1 0 0 0 1 link_head static_camera_link"/>
 
+    <node pkg="tf2_ros" type="static_transform_publisher" name="optitrack_to_center_table" output="screen"
+            args="0 0 0 1 0 0 0 optitrack_table center_table"/>
     <!-- <node pkg="stretch_putaway" type="localize_odom" name="localize_odom" output="screen" /> -->
 
     <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="aruco_marker_to_detected_marker" output="screen" 

@@ -1,0 +1,61 @@
+# All the locations are in the world frame
+frame: "center_table"
+
+zones:
+  zone_top_left:
+    location: [0.5, 1.0, -1.0]
+    orientation_z: 0.0
+  zone_bottom_left:
+    location: [-0.5, 1.0, -1.0]
+    orientation_z: 0.0
+  zone_top_right:
+    location: [0.5, -1.0, -1.0]
+    orientation_z: 3.14
+  zone_bottom_right:
+    location: [-0.5, -1.0, -1.0]
+    orientation_z: 3.14
+
+
+objects:
+  object_1:
+    location: [0.0, 1.0, -1.0]
+    orientation_z: 0.0
+    color: "red"
+    arm_length: 0.35
+    zone: "zone_top_left"
+  object_2:
+    location: [1.5, 0.0, -1.0]
+    orientation_z: 4.71
+    color: "blue"
+    arm_length: 0.35
+    zone: "zone_top_right"
+  object_3:
+    location: [0.5, -1.0, -1.0]
+    orientation_z: 3.14
+    color: "blue"
+    arm_length: 0.35
+    zone: "zone_top_right"
+  object_4:
+    location: [-0.6, -1.0, -1.0]
+    orientation_z: 3.14
+    color: "blue"
+    arm_length: 0.35
+    zone: "zone_bottom_right"
+
+
+dropoffs:
+  red:
+    location: [2.0, 1.0, -1.0]
+    orientation_z: 1.57
+
+  blue:
+    location: [2.0, -1.25, -1]
+    orientation_z: 1.57
+
+  green:
+    location: [-1.5, -1.25, -1]
+    orientation_z: 4.71 
+
+  yellow:
+    location: [-1.5, 1.0, -1]
+    orientation_z: 4.71 

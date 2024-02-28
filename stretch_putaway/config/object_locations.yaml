@@ -24,23 +24,48 @@ objects:
     arm_length: 0.35
     zone: "zone_top_left"
   object_2:
-    location: [1.5, 0.0, 0.0]
-    orientation_z: 4.71
+    location: [0.7, -0.7, 0.0]
+    orientation_z: 3.14
     color: "blue"
-    arm_length: 0.35
+    arm_length: 0.3
     zone: "zone_top_right"
   object_3:
-    location: [0.5, -1.0, 0.0]
+    location: [0.5, -0.75, 0.0]
     orientation_z: 3.14
-    color: "blue"
-    arm_length: 0.35
+    color: "green"
+    arm_length: 0.3
     zone: "zone_top_right"
   object_4:
-    location: [-0.6, -1.0, 0.0]
+    location: [-0.6, -0.75, 0.0]
     orientation_z: 3.14
-    color: "blue"
-    arm_length: 0.35
+    color: "yellow"
+    arm_length: 0.3
     zone: "zone_bottom_right"
+
+  object_5:
+    location: [-0.15, 1.0, 0.0]
+    orientation_z: 0.0
+    color: "red"
+    arm_length: 0.38
+    zone: "zone_top_left"
+  object_6:
+    location: [0.5, 1.0, 0.0]
+    orientation_z: 0.0
+    color: "blue"
+    arm_length: 0.3
+    zone: "zone_top_left"
+  object_7:
+    location: [-0.5, 1.0, 0.0]
+    orientation_z: 0.0
+    color: "yellow"
+    arm_length: 0.35
+    zone: "zone_bottom_left"
+  object_8:
+    location: [-0.4, 1.0, 0.0]
+    orientation_z: 0.0
+    color: "green"
+    arm_length: 0.45
+    zone: "zone_bottom_left"
 
 
 dropoffs:
