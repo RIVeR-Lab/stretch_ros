@@ -22,12 +22,13 @@ obstacles_layer:
         inf_is_valid: false # Converts inf readings from scanner into max range
         max_obstacle_height: 1.0
         min_obstacle_height: -0.1
+
+
 user_path_layer:
     obstacle_range: 15
-    
     observation_sources: user_path
     user_path:
-        observation_persistence: 0.1
+        observation_persistence: 0.5
         data_type: PointCloud2
         topic: user_path
         marking: true
@@ -37,7 +38,7 @@ user_path_layer:
         min_obstacle_height: -0.1
 
 inflation_layer:
-    inflation_radius: 0.22    # Max. distance from an obstacle at which costs are incurred for planning paths
+    inflation_radius: 0.15    # Max. distance from an obstacle at which costs are incurred for planning paths
     cost_scaling_factor: 10   # Exponential rate at which the obstacle cost drops off (default: 10) - Lower makes robot stay further from obstacles
 
 static_layer:

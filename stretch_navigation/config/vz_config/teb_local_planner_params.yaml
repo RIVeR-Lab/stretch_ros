@@ -65,12 +65,12 @@ TebLocalPlannerROS:
   ## Obstacles
   
   # Minimum desired separation from obstacles (meters)
-  min_obstacle_dist: 0.25
+  min_obstacle_dist: 0.2
 
   # Buffer zone around obstacles with non-zero penalty costs
   # should be larger than min_obstacle_distance to be useful
   # refer to weight_inflation
-  inflation_dist: 0.6
+  inflation_dist: 0.25
 
   # Obstacles in local costmap should be taken into account
   # each cell is marked as point-obstacle. Small costmap resolution
@@ -78,7 +78,7 @@ TebLocalPlannerROS:
   include_costmap_obstacles: True
 
   include_dynamic_obstacles: True
-  dynamic_obstacle_inflation_dist: 0.6
+  dynamic_obstacle_inflation_dist: 0.25
 
   # Limit occupied local costmap obstacles considered for planning 
   # behind the robot

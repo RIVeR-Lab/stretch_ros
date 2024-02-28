@@ -3,6 +3,9 @@ recovery_behaviors:
       type: 'clear_costmap_recovery/ClearCostmapRecovery'
     - name: 'aggressive_reset'
       type: 'clear_costmap_recovery/ClearCostmapRecovery'
+# costmap_reset:
+#   reset_distance: 0.0
+#   layer_names: ['user_path_layer']
 
 recovery_behavior_enabled: true
 clearing_rotation_allowed: false
