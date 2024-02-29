@@ -31,6 +31,7 @@ class ObjectTFNode():
         self.remove_object_service = rospy.Service('remove_object', ObjectRemove, self.remove_object)
         self.get_zones_with_objects_service = rospy.Service('get_zones_with_objects', ZonesWithObjects, self.get_zones_with_objects)
         self.get_objects_in_zone_service = rospy.Service('get_objects_in_zone', ObjectsInZone, self.get_objects_in_zone)
+        self.get_all_objects_service = rospy.Service('get_all_objects', ObjectsInZone, self.get_all_objects)
 
         self.object_list_yaml = rospy.get_param("~object_list_yaml", self.rospack.get_path('stretch_putaway') + '/config/object_locations.yaml')
 
@@ -69,11 +70,23 @@ class ObjectTFNode():
             # print(object_list)
             self.frame_id = object_list['frame']
             print(len(object_list['objects'].items()))
-            self.load_item_list(object_list['objects'].items(), self.object_list)
             self.load_item_list(object_list['dropoffs'].items(), self.dropoff_list)
             self.load_item_list(object_list['zones'].items(), self.zone_list)
 
             for object_name, info in object_list['objects'].items():
+                self.object_list[object_name] = TransformStamped()
+                self.object_list[object_name].header.frame_id = info['zone']
+                self.object_list[object_name].child_frame_id = object_name
+                self.object_list[object_name].transform.translation.x = info['x_offset']
+                self.object_list[object_name].transform.rotation.w = 1
+                # self.object_list[object_name].transform.translation.x = self.zone_list[info['zone']].transform.translation.x + info['x_offset']
+                # self.object_list[object_name].transform.translation.y = self.zone_list[info['zone']].transform.translation.y
+                # self.object_list[object_name].transform.translation.z = self.zone_list[info['zone']].transform.translation.z
+                # self.object_list[object_name].transform.rotation.x = self.zone_list[info['zone']].transform.rotation.x
+                # self.object_list[object_name].transform.rotation.y = self.zone_list[info['zone']].transform.rotation.y
+                # self.object_list[object_name].transform.rotation.z = self.zone_list[info['zone']].transform.rotation.z
+                # self.object_list[object_name].transform.rotation.w = self.zone_list[info['zone']].transform.rotation.w
+
                 self.object_info_list[object_name] = info
                 if info['zone'] not in self.zone_objects:
                     self.zone_objects[info['zone']] = []
@@ -124,6 +137,9 @@ class ObjectTFNode():
     def get_objects_in_zone(self, srv):
         zone = srv.zone
         return ObjectsInZoneResponse(self.zone_objects[zone])
+    
+    def get_all_objects(self, srv):
+        return ObjectsInZoneResponse(self.object_list.keys())
 
         
 

@@ -56,6 +56,9 @@ class PersonTracker(HelloNode):
             # Yaw is out of range, don't move the head
             print("Yaw out of range")
             return
+        if pitch < -1.5 or pitch > 1.5:
+            print("Pitch out of range")
+            return
         HelloNode.move_to_pose(self, {'joint_head_pan': yaw,
                                       'joint_head_tilt': pitch})
         

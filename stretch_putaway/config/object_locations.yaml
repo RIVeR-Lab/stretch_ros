@@ -2,70 +2,66 @@
 frame: "world"
 
 zones:
-  zone_top_left:
-    location: [0.5, 1.0, 0.0]
+  zone_left:
+    location: [0.0, 1.0, 0.0]
     orientation_z: 0.0
-  zone_bottom_left:
-    location: [-0.5, 1.0, 0.0]
-    orientation_z: 0.0
-  zone_top_right:
-    location: [0.5, -1.0, 0.0]
+  zone_bottom:
+    location: [-1.3, 0.0, 0.0]
+    orientation_z: 1.57
+  zone_right:
+    location: [0.0, -0.8, 0.0]
     orientation_z: 3.14
-  zone_bottom_right:
-    location: [-0.5, -1.0, 0.0]
-    orientation_z: 3.14
+  zone_top:
+    location: [1.3, 0, 0.0]
+    orientation_z: 4.71
 
 
 objects:
   object_1:
-    location: [0.0, 1.0, 0.0]
-    orientation_z: 0.0
+    x_offset: 0.5
     color: "red"
-    arm_length: 0.35
-    zone: "zone_top_left"
+    arm_length: 0.3
+    zone: "zone_left"
   object_2:
-    location: [0.7, -0.7, 0.0]
+    x_offset: -0.4
     orientation_z: 3.14
     color: "blue"
-    arm_length: 0.3
-    zone: "zone_top_right"
+    arm_length: 0.2
+    zone: "zone_left"
   object_3:
-    location: [0.5, -0.75, 0.0]
-    orientation_z: 3.14
+    x_offset: 0.1
     color: "green"
     arm_length: 0.3
-    zone: "zone_top_right"
+    zone: "zone_top"
   object_4:
-    location: [-0.6, -0.75, 0.0]
-    orientation_z: 3.14
+    x_offset: 0.3
     color: "yellow"
     arm_length: 0.3
-    zone: "zone_bottom_right"
-
+    zone: "zone_right"
   object_5:
-    location: [-0.15, 1.0, 0.0]
-    orientation_z: 0.0
+    x_offset: -0.5
     color: "red"
-    arm_length: 0.38
-    zone: "zone_top_left"
+    arm_length: 0.2
+    zone: "zone_right"
   object_6:
-    location: [0.5, 1.0, 0.0]
-    orientation_z: 0.0
+    x_offset: 0.0
     color: "blue"
-    arm_length: 0.3
-    zone: "zone_top_left"
-  object_7:
-    location: [-0.5, 1.0, 0.0]
-    orientation_z: 0.0
-    color: "yellow"
-    arm_length: 0.35
-    zone: "zone_bottom_left"
-  object_8:
-    location: [-0.4, 1.0, 0.0]
-    orientation_z: 0.0
-    color: "green"
-    arm_length: 0.45
-    zone: "zone_bottom_left"
+    arm_length: 0.2
+    zone: "zone_bottom"
+
+
+  # object_7:
+  #   location: [-0.5, 1.0, 0.0]
+  #   orientation_z: 0.0
+  #   color: "yellow"
+  #   arm_length: 0.35
+  #   zone: "zone_bottom_left"
+  # object_8:
+  #   location: [-0.4, 1.0, 0.0]
+  #   orientation_z: 0.0
+  #   color: "green"
+  #   arm_length: 0.45
+  #   zone: "zone_bottom_left"
 
 
 dropoffs:
