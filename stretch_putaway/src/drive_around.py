@@ -231,53 +231,53 @@ class PutAwayNode(HelloNode):
         
 
     
-    # Returns the name of the closest object to the robot in terms of path steps
-    def get_closest_object_by_path(self):
+    # Returns the name of the closest tf to the robot in terms of path steps
+    # This can either be useds to get the closest object or the closest zone
+    # First use closest zone, then get closest object in that zone
+    def get_closest_object_by_path(self, target_tf_names):
         # First get the current robot position
         rospy.loginfo("Getting robot position")
         robot_base_tf = HelloNode.get_tf(self, 'map', 'base_link').transform
         robot_base_pose = self.tf_to_posetamped(robot_base_tf, 'map')
-        zones_with_objects = self.get_zones_with_objects_service()
+        
         min_steps = 100000
         global_costmap = rospy.wait_for_message('/move_base/global_costmap/costmap', OccupancyGrid)
         closest_zone = None
         print("Costmap", global_costmap.info)
         print("Costmap data", len(global_costmap.data))
-        for zone in zones_with_objects.zones:
-            rospy.loginfo("Getting zone position " + zone)
-            zone_base_tf = HelloNode.get_tf(self, 'map', zone).transform
-            zone_base_pose = self.tf_to_posetamped(zone_base_tf, 'map')
+        for tf_name in target_tf_names:
+            rospy.loginfo("Getting tf position " + tf_name)
+            base_tf = HelloNode.get_tf(self, 'map', tf_name).transform
+            base_pose = self.tf_to_posetamped(base_tf, 'map')
 
             # Check if goal pose is occupied
-            goal_x = zone_base_tf.translation.x + 0.2
-            goal_y = zone_base_tf.translation.y
+            goal_x = base_tf.translation.x
+            goal_y = base_tf.translation.y
             goal_index = int((goal_y - global_costmap.info.origin.position.y) / global_costmap.info.resolution) * global_costmap.info.width \
                         + int((goal_x - global_costmap.info.origin.position.x) / global_costmap.info.resolution)
             print("Goal index", goal_index)
             print(global_costmap.data[goal_index])
             if global_costmap.data[goal_index] > 0:
-                print("zone is occupied, continuing")
+                print("TF is occupied, continuing")
                 continue
 
             start_time = time.time()
 
             # Calculate plan to each object and take the shortest one
-            zone_plan = self.make_plan_service(robot_base_pose, zone_base_pose, 0.1)
+            tf_plan = self.make_plan_service(robot_base_pose, base_pose, 0.1)
 
             end_time = time.time()
             print("Time to get plan", end_time - start_time)
-            print("Object plan for object", zone, len(zone_plan.plan.poses))
-            if len(zone_plan.plan.poses) < min_steps:
-                min_steps = len(zone_plan.plan.poses)
-                closest_zone = zone
+            print("Object plan for object", tf_name, len(tf_plan.plan.poses))
+            if len(tf_plan.plan.poses) < min_steps:
+                min_steps = len(tf_plan.plan.poses)
+                closest_tf = tf_name
 
-        if closest_zone is None:
+        if closest_tf is None:
             rospy.loginfo("No objects found, will resort to greedy approach")
-            return None
-
-        objects_in_zone = self.get_objects_in_zone_service(closest_zone)
-        print("Objects in zone", objects_in_zone.object_names)
-        return objects_in_zone.object_names[0]
+            return self.get_closest_object()
+        
+        return closest_tf
                 
 
 
@@ -318,7 +318,7 @@ class PutAwayNode(HelloNode):
 
     # Release the object
     def release_object(self, arm_length_diff=0.0):
-        HelloNode.move_to_pose(self, {'joint_lift': 0.5,
+        HelloNode.move_to_pose(self, {'joint_lift': 0.7,
                                       'joint_arm': 0.3 + arm_length_diff,
                                       'joint_wrist_yaw': 0.0})
         HelloNode.move_to_pose(self, {'joint_gripper_finger_left' : 0.25})
