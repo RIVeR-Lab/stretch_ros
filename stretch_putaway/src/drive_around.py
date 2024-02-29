@@ -10,6 +10,7 @@ from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from nav_msgs.srv import GetPlan
 from nav_msgs.msg import OccupancyGrid
+from sensor_msgs.msg import CameraInfo, Image
 from control_msgs.msg import FollowJointTrajectoryGoal
 from trajectory_msgs.msg import JointTrajectoryPoint
 import tf2_ros
@@ -26,6 +27,9 @@ import math
 from tf2_geometry_msgs import PoseStamped as TF2PoseStamped
 from stretch_putaway.srv import ObjectRemove, ZonesWithObjects, ObjectsInZone, ZonesWithObjectsResponse, ObjectsInZoneResponse
 import time
+from image_geometry import PinholeCameraModel
+import cv_bridge
+import cv2
     
 class PutAwayNode(HelloNode):
     def __init__(self):
@@ -43,6 +47,9 @@ class PutAwayNode(HelloNode):
         self.mode_pub = rospy.Publisher('/mode', String, queue_size=1)
         self.navigation_mode_service = rospy.ServiceProxy('switch_to_navigation_mode', Trigger)
         self.position_mode_service = rospy.ServiceProxy('switch_to_position_mode', Trigger)
+        self.cam_model = PinholeCameraModel()
+        self.cam_model.fromCameraInfo(rospy.wait_for_message('/camera/color/camera_info', CameraInfo))
+        self.bridge = cv_bridge.CvBridge()
 
         # Load in object specific information and set up service to remove objects once picked up
         self.object_list_yaml = rospy.get_param("~object_list_yaml", self.rospack.get_path('stretch_putaway') + '/config/object_locations.yaml')
@@ -79,7 +86,9 @@ class PutAwayNode(HelloNode):
             print("Time to get closest object", time.time() - start_time)
             
             self.pickup_object(target_object_name)
-
+            self.look_at(target_object_name + '_table')
+            rospy.sleep(2)
+            self.check_object_presence(target_object_name + '_table')
         # self.circle_table()
 
     def initialize_object_list(self, object_list_yaml):
@@ -107,10 +116,10 @@ class PutAwayNode(HelloNode):
 
         arm_length = self.object_info[object_name]['arm_length']
         arm_length_diff = self.move_base_accurate(object_base_pose)
+        return
         print("Arm length diff", arm_length_diff)
         self.grasp_object(arm_length = arm_length - arm_length_diff)
 
-        # return
         self.remove_object_service(object_name)
 
         # Drive to dropoff location and release
@@ -279,23 +288,43 @@ class PutAwayNode(HelloNode):
         
         return closest_tf
                 
-
+    def check_object_presence(self, object_name):
+        object_tf = HelloNode.get_tf(self, 'camera_color_optical_frame', object_name).transform
+        if object_tf is None:
+            return False
+        camera_image = rospy.wait_for_message('/camera/color/image_raw', Image)
+        cv_image = self.bridge.imgmsg_to_cv2(camera_image, "bgr8")
+        pt_cv = self.cam_model.project3dToPixel((object_tf.translation.x, object_tf.translation.y, object_tf.translation.z))
+        print("Pixel location", pt_cv)
+        cv2.circle(cv_image, (int(pt_cv[0]), int(pt_cv[1])), 5, (0, 0, 255), -1)
+        cv2.imshow("Image window", cv_image)
+        cv2.waitKey(0)
 
         
-    # Move the camera to look at a specific frame
-    def look_at(self, look_at_frame_name='map'):
-        self.position_mode_service()
-        look_at_tf = HelloNode.get_tf(self, 'link_head', look_at_frame_name).transform
+
+        
+
+        
+    def look_at(self, look_at_frame_name='hololens_head'):
+        print("Waiting for transform")
+        look_at_tf = HelloNode.get_tf(self, 'static_camera_link', look_at_frame_name).transform
         yaw = math.atan2(look_at_tf.translation.x, look_at_tf.translation.y)
-        pitch = math.atan2(look_at_tf.translation.y, look_at_tf.translation.z)
+        pitch = math.atan2(math.hypot(look_at_tf.translation.x, look_at_tf.translation.y)
+                           , look_at_tf.translation.z)
+
+        yaw = -yaw
+        pitch = 1.57 - pitch
         print("Look at rotations", yaw, pitch)
 
-        if yaw < -2.355 or yaw > 0.785:
-            HelloNode.move_to_pose(self, {'rotate_mobile_base': yaw / abs(yaw) * 0.785})
-        HelloNode.move_to_pose(self, {'joint_head_pan': -yaw,
-                                      'joint_head_tilt': 1.57-pitch})
-        
-        self.navigation_mode_service()
+        if yaw < -3.54 or yaw > 1.67:
+            # Yaw is out of range, don't move the head
+            print("Yaw out of range")
+            return
+        if pitch < -1.5 or pitch > 1.5:
+            print("Pitch out of range")
+            return
+        HelloNode.move_to_pose(self, {'joint_head_pan': yaw,
+                                      'joint_head_tilt': pitch})
 
 
     # Reach arm to pre-defined height and wrist positions. Arm length is determined based on robot position
@@ -310,7 +339,7 @@ class PutAwayNode(HelloNode):
                                       'joint_wrist_yaw': 0.0,
                                       'joint_wrist_pitch' : -0.5})
         
-        # input("Press Enter to Continue...")
+        input("Press Enter to Continue...")
         # Close the gripper and wait for grasp
         HelloNode.move_to_pose(self, {'joint_gripper_finger_left' : -0.25})
         rospy.sleep(2)
@@ -319,7 +348,7 @@ class PutAwayNode(HelloNode):
     # Release the object
     def release_object(self, arm_length_diff=0.0):
         HelloNode.move_to_pose(self, {'joint_lift': 0.7,
-                                      'joint_arm': 0.3 + arm_length_diff,
+                                      'joint_arm': 0.3 - arm_length_diff,
                                       'joint_wrist_yaw': 0.0})
         HelloNode.move_to_pose(self, {'joint_gripper_finger_left' : 0.25})
         rospy.sleep(2)

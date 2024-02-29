@@ -18,6 +18,7 @@ from copy import deepcopy
 import stretch_body.robot as rb
 from std_srvs.srv import Empty, Trigger
 from threading import Lock, RLock
+import copy
 from stretch_putaway.srv import ObjectRemove, ZonesWithObjects, ZonesWithObjectsResponse, ObjectsInZone, ObjectsInZoneResponse
     
 class ObjectTFNode():
@@ -37,6 +38,7 @@ class ObjectTFNode():
 
         # Object list is a dictionary of object names to their tfs
         self.object_list = {}
+        self.object_table_list = {}
         # Object info list is a dictionary of object names to their info
         self.object_info_list = {}
         # Dropoff list is a dictionary of dropoff tfs to simplify path searching
@@ -52,6 +54,9 @@ class ObjectTFNode():
         while not rospy.is_shutdown():
             with self.object_list_lock:
                 for object_name, tf in self.object_list.items():
+                    tf.header.stamp = rospy.Time.now()
+                    self.br.sendTransform(tf)
+                for object_name, tf in self.object_table_list.items():
                     tf.header.stamp = rospy.Time.now()
                     self.br.sendTransform(tf)
             for color, tf in self.dropoff_list.items():
@@ -79,6 +84,13 @@ class ObjectTFNode():
                 self.object_list[object_name].child_frame_id = object_name
                 self.object_list[object_name].transform.translation.x = info['x_offset']
                 self.object_list[object_name].transform.rotation.w = 1
+
+                self.object_table_list[object_name] = copy.deepcopy(self.object_list[object_name])
+                self.object_table_list[object_name].child_frame_id = object_name + "_table"
+                self.object_table_list[object_name].transform.translation.x = info['x_offset']
+                self.object_table_list[object_name].transform.translation.y = -0.35 - info['arm_length']
+                self.object_table_list[object_name].transform.translation.z = 1
+                self.object_table_list[object_name].transform.rotation.w = 1
                 # self.object_list[object_name].transform.translation.x = self.zone_list[info['zone']].transform.translation.x + info['x_offset']
                 # self.object_list[object_name].transform.translation.y = self.zone_list[info['zone']].transform.translation.y
                 # self.object_list[object_name].transform.translation.z = self.zone_list[info['zone']].transform.translation.z
@@ -118,6 +130,7 @@ class ObjectTFNode():
             object_name = srv.object_name
             with self.object_list_lock:
                 self.object_list.pop(object_name)
+                self.object_table_list.pop(object_name)
 
             object_zone = self.object_info_list[object_name]['zone']
             self.zone_objects[object_zone].remove(object_name)
