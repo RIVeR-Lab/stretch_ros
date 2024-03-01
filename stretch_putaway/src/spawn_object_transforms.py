@@ -87,8 +87,8 @@ class ObjectTFNode():
 
                 self.object_table_list[object_name] = copy.deepcopy(self.object_list[object_name])
                 self.object_table_list[object_name].child_frame_id = object_name + "_table"
-                self.object_table_list[object_name].transform.translation.x = info['x_offset']
-                self.object_table_list[object_name].transform.translation.y = -0.35 - info['arm_length']
+                self.object_table_list[object_name].transform.translation.x = info['x_offset'] + 0.05
+                self.object_table_list[object_name].transform.translation.y = -0.48 - info['arm_length']
                 self.object_table_list[object_name].transform.translation.z = 1
                 self.object_table_list[object_name].transform.rotation.w = 1
                 # self.object_list[object_name].transform.translation.x = self.zone_list[info['zone']].transform.translation.x + info['x_offset']

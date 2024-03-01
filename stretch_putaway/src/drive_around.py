@@ -86,9 +86,7 @@ class PutAwayNode(HelloNode):
             print("Time to get closest object", time.time() - start_time)
             
             self.pickup_object(target_object_name)
-            self.look_at(target_object_name + '_table')
-            rospy.sleep(2)
-            self.check_object_presence(target_object_name + '_table')
+            
         # self.circle_table()
 
     def initialize_object_list(self, object_list_yaml):
@@ -113,10 +111,8 @@ class PutAwayNode(HelloNode):
         object_base_pose.orientation.y = object_base_tf.rotation.y
         object_base_pose.orientation.z = object_base_tf.rotation.z
         object_base_pose.orientation.w = object_base_tf.rotation.w
-
         arm_length = self.object_info[object_name]['arm_length']
         arm_length_diff = self.move_base_accurate(object_base_pose)
-        return
         print("Arm length diff", arm_length_diff)
         self.grasp_object(arm_length = arm_length - arm_length_diff)
 
@@ -288,6 +284,7 @@ class PutAwayNode(HelloNode):
         
         return closest_tf
                 
+    # Look at an object's tf an get the color values at that location
     def check_object_presence(self, object_name):
         object_tf = HelloNode.get_tf(self, 'camera_color_optical_frame', object_name).transform
         if object_tf is None:
@@ -303,8 +300,7 @@ class PutAwayNode(HelloNode):
         
 
         
-
-        
+    # Move the camera head to look at a specific transform
     def look_at(self, look_at_frame_name='hololens_head'):
         print("Waiting for transform")
         look_at_tf = HelloNode.get_tf(self, 'static_camera_link', look_at_frame_name).transform
