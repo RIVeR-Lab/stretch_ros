@@ -18,7 +18,10 @@
             args="-0.624 -0.923 1.448 -0.001 0.005 -0.009 1.000 world original_stretch_head"/>
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_original_stretch_head" output="screen"
-                args="0 0 -1.448 0 0 0 1 original_stretch_head map"/>
+            args="0 0 -1.448 0 0 0 1 original_stretch_head map"/>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="stretch_head_to_ground_stretch_head" output="screen"
+            args="0 0 -1.44 0 0 0 1 ground_stretch_head original_stretch_head"/>
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="link_head_to_static_camera" output="screen"
             args="0.14 0.1 -0.1 0 0 0 1 link_head static_camera_link"/>

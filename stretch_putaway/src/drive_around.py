@@ -87,8 +87,8 @@ class PutAwayNode(HelloNode):
             
             self.pickup_object(target_object_name)
             
-        # self.circle_table()
 
+    # Load in object information, such as color and arm extension length from the object yaml file
     def initialize_object_list(self, object_list_yaml):
         with open(object_list_yaml, 'r') as f:
             object_list = yaml.safe_load(f)
@@ -131,10 +131,10 @@ class PutAwayNode(HelloNode):
         # arm_length_diff = self.fine_tune_position(dropoff_base_pose)
 
 
-        self.release_object(arm_length_diff)
+        # self.release_object(arm_length_diff)
         self.high_stow()
 
-
+    # Move the base using the move_base action server  
     def move_base(self, goal_pose):
         self.clear_costmap_service()
         rospy.sleep(1)
@@ -147,10 +147,11 @@ class PutAwayNode(HelloNode):
         self.move_base_client.wait_for_result()
         return 0
 
-
+    # Move the base to the goal pose, but use optitrack to fine tune the position
     def move_base_accurate(self, goal_pose):
         self.move_base(goal_pose)
 
+        # Wait for the robot to reach the goal pose, and for the head to stop moving
         rospy.sleep(3)
 
         rospy.loginfo("Fine tuning with optitrack localization")
@@ -164,8 +165,10 @@ class PutAwayNode(HelloNode):
         goal_pose_stamped.header.stamp = rospy.Time.now()
         goal_pose_stamped.pose = goal_pose
         goal_pose_stretch_opti_frame = self.tf2_buffer.transform(goal_pose_stamped, 'stretch_head', rospy.Duration(3))
-        face_goal_pose_angle = math.atan2(goal_pose_stretch_opti_frame.pose.position.x, 
-                                          goal_pose_stretch_opti_frame.pose.position.y)
+        print("Offset = ", goal_pose_stretch_opti_frame)
+
+        face_goal_pose_angle = math.atan2(goal_pose_stretch_opti_frame.pose.position.y, 
+                                          goal_pose_stretch_opti_frame.pose.position.x)
         backwards = False
         if face_goal_pose_angle < -1.57:
             face_goal_pose_angle = 3.14 + face_goal_pose_angle
@@ -175,7 +178,9 @@ class PutAwayNode(HelloNode):
             backwards = True
         
         print("Rotating to face mobile base by ", face_goal_pose_angle)
+        input("Press Enter to Continue...")
         HelloNode.move_to_pose(self, {'rotate_mobile_base': face_goal_pose_angle})
+        rospy.sleep(2)
 
         goal_pose_stamped.header.stamp = rospy.Time.now()
         goal_pose_stretch_opti_frame = self.tf2_buffer.transform(goal_pose_stamped, 'stretch_head', rospy.Duration(3))
@@ -184,9 +189,11 @@ class PutAwayNode(HelloNode):
         if backwards:
             goal_pose_offset = -goal_pose_offset
         print("Driving to move towards goal pose ", goal_pose_offset)
+        input("Press Enter to Continue...")
         HelloNode.move_to_pose(self, {'translate_mobile_base': goal_pose_offset})
+        rospy.sleep(2)
 
-        # Get the goal pose in the stretch_head frame
+        # After driving directly at the goal pose, rotate to match the orientation of the goal pose
         stretch_opti_tf = HelloNode.get_tf(self, 'original_stretch_head', 'stretch_head').transform
         stretch_opti_quaternion_inv = [stretch_opti_tf.rotation.x, stretch_opti_tf.rotation.y, stretch_opti_tf.rotation.z, -stretch_opti_tf.rotation.w]
         goal_pose_quaternion = [goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z, goal_pose.orientation.w]
@@ -210,20 +217,23 @@ class PutAwayNode(HelloNode):
         HelloNode.move_to_pose(self, {'translate_mobile_base': translation_diff})
         stretch_opti_tf = HelloNode.get_tf(self, 'original_stretch_head', 'stretch_head').transform 
 
-        # Output position in difference after translation
+        # Output position in difference after translation (Debugging purposes)
         goal_pose_stamped.header.stamp = rospy.Time.now()
         goal_pose_stretch_opti_frame_post = self.tf2_buffer.transform(goal_pose_stamped, 'stretch_head', rospy.Duration(3))
         print("Post translation", goal_pose_stretch_opti_frame_post.pose.position.x)
 
+        # Switch back to navigation mode once position is fine tuned
         self.navigation_mode_service()
 
         # Return Y offset to account for arm length difference. Taken with respect to the robot head
         # If y offset is positive, that means goal is to the left which means the robot is closer to the table
         return goal_pose_stretch_opti_frame.pose.position.y
     
-    # Fine tune the position of the robot to the goal pose
+    # Fine tune the position of the robot to the goal pose only using robot localization information
     def fine_tune_position(self, goal_pose):
         self.position_mode_service()
+
+        # Rotate to match the  goal pose orientation
         current_pose = HelloNode.get_tf(self, 'map', 'base_link').transform
         goal_pose_quaternion = [goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z, goal_pose.orientation.w]
         current_pose_quaternion_inv = [current_pose.rotation.x, current_pose.rotation.y, current_pose.rotation.z, -current_pose.rotation.w]
@@ -233,6 +243,7 @@ class PutAwayNode(HelloNode):
         HelloNode.move_to_pose(self, {'rotate_mobile_base': rotation_diff[2]})
         rospy.sleep(2)
         
+        # Assume orientation is correct, now move forward or backward to the correct position
         goal_pose_stamped = TF2PoseStamped()
         goal_pose_stamped.header.frame_id = "map"
         goal_pose_stamped.header.stamp = rospy.Time.now()

@@ -83,12 +83,12 @@ objects:
     arm_length: 0.20
     zone: "zone_right"
   object_13:
-    x_offset: -0.2
+    x_offset: -0.3
     color: "red"
     arm_length: 0.3
     zone: "zone_right"
   object_14:
-    x_offset: 0.1
+    x_offset: 0.15
     color: "yellow"
     arm_length: 0.27
     zone: "zone_right"
