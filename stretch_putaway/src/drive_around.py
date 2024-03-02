@@ -119,16 +119,16 @@ class PutAwayNode(HelloNode):
         self.remove_object_service(object_name)
 
         # Drive to dropoff location and release
-        dropoff_base_tf = HelloNode.get_tf(self, 'map', self.object_info[object_name]['color']).transform
-        dropoff_base_pose = Pose()
-        dropoff_base_pose.position.x = dropoff_base_tf.translation.x
-        dropoff_base_pose.position.y = dropoff_base_tf.translation.y
-        dropoff_base_pose.orientation.x = dropoff_base_tf.rotation.x
-        dropoff_base_pose.orientation.y = dropoff_base_tf.rotation.y
-        dropoff_base_pose.orientation.z = dropoff_base_tf.rotation.z
-        dropoff_base_pose.orientation.w = dropoff_base_tf.rotation.w
-        self.move_base(dropoff_base_pose)
-        arm_length_diff = self.fine_tune_position(dropoff_base_pose)
+        # dropoff_base_tf = HelloNode.get_tf(self, 'map', self.object_info[object_name]['color']).transform
+        # dropoff_base_pose = Pose()
+        # dropoff_base_pose.position.x = dropoff_base_tf.translation.x
+        # dropoff_base_pose.position.y = dropoff_base_tf.translation.y
+        # dropoff_base_pose.orientation.x = dropoff_base_tf.rotation.x
+        # dropoff_base_pose.orientation.y = dropoff_base_tf.rotation.y
+        # dropoff_base_pose.orientation.z = dropoff_base_tf.rotation.z
+        # dropoff_base_pose.orientation.w = dropoff_base_tf.rotation.w
+        # self.move_base(dropoff_base_pose)
+        # arm_length_diff = self.fine_tune_position(dropoff_base_pose)
 
 
         self.release_object(arm_length_diff)
@@ -155,6 +155,36 @@ class PutAwayNode(HelloNode):
 
         rospy.loginfo("Fine tuning with optitrack localization")
         self.position_mode_service()
+
+        stretch_opti_tf = HelloNode.get_tf(self, 'original_stretch_head', 'stretch_head').transform
+
+        # Drive directly at the target
+        goal_pose_stamped = TF2PoseStamped()
+        goal_pose_stamped.header.frame_id = "original_stretch_head"
+        goal_pose_stamped.header.stamp = rospy.Time.now()
+        goal_pose_stamped.pose = goal_pose
+        goal_pose_stretch_opti_frame = self.tf2_buffer.transform(goal_pose_stamped, 'stretch_head', rospy.Duration(3))
+        face_goal_pose_angle = math.atan2(goal_pose_stretch_opti_frame.pose.position.x, 
+                                          goal_pose_stretch_opti_frame.pose.position.y)
+        backwards = False
+        if face_goal_pose_angle < -1.57:
+            face_goal_pose_angle = 3.14 + face_goal_pose_angle
+            backwards = True
+        elif face_goal_pose_angle > 1.57:
+            face_goal_pose_angle = 3.14 - face_goal_pose_angle
+            backwards = True
+        
+        print("Rotating to face mobile base by ", face_goal_pose_angle)
+        HelloNode.move_to_pose(self, {'rotate_mobile_base': face_goal_pose_angle})
+
+        goal_pose_stamped.header.stamp = rospy.Time.now()
+        goal_pose_stretch_opti_frame = self.tf2_buffer.transform(goal_pose_stamped, 'stretch_head', rospy.Duration(3))
+        goal_pose_offset = math.hypot(goal_pose_stretch_opti_frame.pose.position.y,
+                                      goal_pose_stretch_opti_frame.pose.position.x)
+        if backwards:
+            goal_pose_offset = -goal_pose_offset
+        print("Driving to move towards goal pose ", goal_pose_offset)
+        HelloNode.move_to_pose(self, {'translate_mobile_base': goal_pose_offset})
 
         # Get the goal pose in the stretch_head frame
         stretch_opti_tf = HelloNode.get_tf(self, 'original_stretch_head', 'stretch_head').transform
