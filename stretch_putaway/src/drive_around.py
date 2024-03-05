@@ -119,19 +119,19 @@ class PutAwayNode(HelloNode):
         self.remove_object_service(object_name)
 
         # Drive to dropoff location and release
-        # dropoff_base_tf = HelloNode.get_tf(self, 'map', self.object_info[object_name]['color']).transform
-        # dropoff_base_pose = Pose()
-        # dropoff_base_pose.position.x = dropoff_base_tf.translation.x
-        # dropoff_base_pose.position.y = dropoff_base_tf.translation.y
-        # dropoff_base_pose.orientation.x = dropoff_base_tf.rotation.x
-        # dropoff_base_pose.orientation.y = dropoff_base_tf.rotation.y
-        # dropoff_base_pose.orientation.z = dropoff_base_tf.rotation.z
-        # dropoff_base_pose.orientation.w = dropoff_base_tf.rotation.w
-        # self.move_base(dropoff_base_pose)
-        # arm_length_diff = self.fine_tune_position(dropoff_base_pose)
+        dropoff_base_tf = HelloNode.get_tf(self, 'map', self.object_info[object_name]['color']).transform
+        dropoff_base_pose = Pose()
+        dropoff_base_pose.position.x = dropoff_base_tf.translation.x
+        dropoff_base_pose.position.y = dropoff_base_tf.translation.y
+        dropoff_base_pose.orientation.x = dropoff_base_tf.rotation.x
+        dropoff_base_pose.orientation.y = dropoff_base_tf.rotation.y
+        dropoff_base_pose.orientation.z = dropoff_base_tf.rotation.z
+        dropoff_base_pose.orientation.w = dropoff_base_tf.rotation.w
+        self.move_base(dropoff_base_pose)
+        arm_length_diff = self.fine_tune_position(dropoff_base_pose)
 
 
-        # self.release_object(arm_length_diff)
+        self.release_object(arm_length_diff)
         self.high_stow()
 
     # Move the base using the move_base action server  
@@ -178,7 +178,7 @@ class PutAwayNode(HelloNode):
             backwards = True
         
         print("Rotating to face mobile base by ", face_goal_pose_angle)
-        input("Press Enter to Continue...")
+        # input("Press Enter to Continue...")
         HelloNode.move_to_pose(self, {'rotate_mobile_base': face_goal_pose_angle})
         rospy.sleep(2)
 
@@ -189,7 +189,7 @@ class PutAwayNode(HelloNode):
         if backwards:
             goal_pose_offset = -goal_pose_offset
         print("Driving to move towards goal pose ", goal_pose_offset)
-        input("Press Enter to Continue...")
+        # input("Press Enter to Continue...")
         HelloNode.move_to_pose(self, {'translate_mobile_base': goal_pose_offset})
         rospy.sleep(2)
 
@@ -263,6 +263,7 @@ class PutAwayNode(HelloNode):
     # Returns the name of the closest object by euclidian distance from the robot to object and from the object to dropoff
     def get_closest_object(self):
         all_object_names = self.get_all_objects_service('').object_names
+        all_object_names = all_object_names and ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
         min_object_name = ''
         min_dist = 100000000
         for object_name in all_object_names:
@@ -273,6 +274,9 @@ class PutAwayNode(HelloNode):
             if dist < min_dist:
                 min_dist = dist
                 min_object_name = object_name
+        if min_object_name is None:
+            rospy.loginfo("No objects found, task completed")
+            rospy.signal_shutdown("Task completed")
         return min_object_name
         
 
@@ -286,7 +290,7 @@ class PutAwayNode(HelloNode):
         robot_base_tf = HelloNode.get_tf(self, 'map', 'base_link').transform
         robot_base_pose = self.tf_to_posetamped(robot_base_tf, 'map')
         
-        min_steps = 100000
+        min_steps = 10000000
         global_costmap = rospy.wait_for_message('/move_base/global_costmap/costmap', OccupancyGrid)
         closest_zone = None
         print("Costmap", global_costmap.info)
@@ -376,8 +380,8 @@ class PutAwayNode(HelloNode):
                                       'joint_wrist_yaw': 0.0,
                                       'joint_wrist_pitch' : -0.5})
         
-        input("Press Enter to Continue...")
-        # Close the gripper and wait for grasp
+        # input("Press Enter to Continue...")
+        # # Close the gripper and wait for grasp
         HelloNode.move_to_pose(self, {'joint_gripper_finger_left' : -0.25})
         rospy.sleep(2)
         self.high_stow()
