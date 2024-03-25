@@ -80,6 +80,7 @@ class PutAwayNode(HelloNode):
 
         
         while not rospy.is_shutdown():
+            print("Looking for cloest object")
             start_time = time.time()
             target_object_name = self.get_closest_object()
             print("Closest object", target_object_name)
@@ -263,7 +264,7 @@ class PutAwayNode(HelloNode):
     # Returns the name of the closest object by euclidian distance from the robot to object and from the object to dropoff
     def get_closest_object(self):
         all_object_names = self.get_all_objects_service('').object_names
-        all_object_names = all_object_names and ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
+        all_object_names = list(set(all_object_names).intersection(['object_1', 'object_2', 'object_3', 'object_4', 'object_5']))
         min_object_name = ''
         min_dist = 100000000
         for object_name in all_object_names:
@@ -393,7 +394,7 @@ class PutAwayNode(HelloNode):
                                       'joint_wrist_yaw': 0.0})
         HelloNode.move_to_pose(self, {'joint_gripper_finger_left' : 0.25})
         rospy.sleep(2)
-        self.high_stow()
+        # self.high_stow()
 
     # Stow position, but higher for faster task completion
     def high_stow(self):

@@ -42,11 +42,12 @@ class PersonTracker(HelloNode):
 
     # Move the camera to look at a specific frame
     def look_at(self, look_at_frame_name='hololens'):
+        z_offset = -0.5
         print("Waiting for transform")
         look_at_tf = HelloNode.get_tf(self, 'static_camera_link', look_at_frame_name).transform
         yaw = math.atan2(look_at_tf.translation.x, look_at_tf.translation.y)
         pitch = math.atan2(math.hypot(look_at_tf.translation.x, look_at_tf.translation.y)
-                           , look_at_tf.translation.z)
+                           , look_at_tf.translation.z - z_offset)
 
         yaw = -yaw
         pitch = 1.57 - pitch
@@ -55,7 +56,7 @@ class PersonTracker(HelloNode):
         if yaw < -3.54 or yaw > 1.67:
             # Yaw is out of range, don't move the head
             print("Yaw out of range")
-            yaw = max(-3.54, min(1.67, yaw))
+            yaw = max(-4.0, min(1.67, yaw))
         if pitch < -1.5 or pitch > 0.4:
             print("Pitch out of range")
 
