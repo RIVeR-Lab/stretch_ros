@@ -24,10 +24,12 @@ class PersonTracker(HelloNode):
         HelloNode.main(self, 'person_tracker', 'person_tracker', wait_for_first_pointcloud=False)
         self.rospack = rospkg.RosPack()
         self.tracking_frame = rospy.get_param("~tracking_frame", "hololens")
-        self.tracking_frame = "hololens"
+        # self.tracking_frame = "hololens"
         self.tracking = True
         rospy.Service('track_person', Trigger, self.track_person)
         rospy.Service('stop_tracking', Trigger, self.stop_tracking)
+
+        print("Trajectory Client", self.trajectory_client)
         
         self.tf2_buffer = tf2_ros.Buffer()
         self.tf2_listener = tf2_ros.TransformListener(self.tf2_buffer)
@@ -47,7 +49,7 @@ class PersonTracker(HelloNode):
         look_at_tf = HelloNode.get_tf(self, 'static_camera_link', look_at_frame_name).transform
         yaw = math.atan2(look_at_tf.translation.x, look_at_tf.translation.y)
         pitch = math.atan2(math.hypot(look_at_tf.translation.x, look_at_tf.translation.y)
-                           , look_at_tf.translation.z - z_offset)
+                           , look_at_tf.translation.z + z_offset)
 
         yaw = -yaw
         pitch = 1.57 - pitch
